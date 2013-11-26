@@ -70,7 +70,7 @@ StaticServlet.MimeMap = {
     'css': 'text/css',
     'xml': 'application/xml',
     'json': 'application/json',
-    'js': 'application/javascript',
+    'js': 'text/javascript',
     'jpg': 'image/jpeg',
     'jpeg': 'image/jpeg',
     'gif': 'image/gif',
@@ -80,18 +80,19 @@ StaticServlet.MimeMap = {
 
 StaticServlet.prototype.handleRequest = function(req, res) {
     var self = this;
-    var path = ('./' + req.url.pathname).replace('//','/').replace(/%(..)/g, function(match, hex){
+    var root =  '../../';
+    var path = (root + req.url.pathname).replace('//','/').replace(/%(..)/g, function(match, hex){
         return String.fromCharCode(parseInt(hex, 16));
     });
-    var parts = path.split('/');
-    if (parts[parts.length-1].charAt(0) === '.')
-        return self.sendForbidden_(req, res, path);
-    fs.stat(path, function(err, stat) {
-        if (err)
-            return self.sendMissing_(req, res, path);
 
+    console.log(path)
+
+    if (path == root)  {
         return self.sendFile_(req, res, config.indexPath);
-    });
+    }
+
+    console.log('returning' + path);
+    return self.sendFile_(req, res, path);
 }
 
 StaticServlet.prototype.sendError_ = function(req, res, error) {
@@ -106,30 +107,13 @@ StaticServlet.prototype.sendError_ = function(req, res, error) {
     util.puts(util.inspect(error));
 };
 
-StaticServlet.prototype.sendMissing_ = function(req, res, path) {
-    path = path.substring(1);
-    res.writeHead(404, {
-        'Content-Type': 'text/html'
-    });
-    res.write('<!doctype html>\n');
-    res.write('<title>404 Not Found</title>\n');
-    res.write('<h1>Not Found</h1>');
-    res.write(
-        '<p>The requested URL ' +
-            escapeHtml(path) +
-            ' was not found on this server.</p>'
-    );
-    res.end();
-    util.puts('404 Not Found: ' + path);
-};
-
 
 StaticServlet.prototype.sendFile_ = function(req, res, path) {
     var self = this;
     var file = fs.createReadStream(path);
     res.writeHead(200, {
         'Content-Type': StaticServlet.
-            MimeMap[path.split('.').pop()] || 'text/plain'
+            MimeMap[path.split(/[. ]+/).pop()] || 'text/plain'
     });
     if (req.method === 'HEAD') {
         res.end();
