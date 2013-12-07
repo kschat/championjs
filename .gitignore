@@ -2,3 +2,4 @@
 .DS_Store
 .grunt
 node_modules
+*.log
