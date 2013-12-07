@@ -1,32 +1,28 @@
-(function() {
-	'use strict';
+var events = champ.events = (function () {
+    var _subscribers = {};
+    
+    return {
+        trigger: function (topic, data) {
+            var subs = _subscribers[topic] || [];
 
-	var root = this;
+            for (var sub in subs) {
+                subs[sub](data, topic);
+            }
+        },
 
-	var EventEmitter = root.EventEmitter = {},
-		subscribers = {};
+        on: function (topic, handler) {
+            _subscribers[topic] = _subscribers[topic] || [];
+            _subscribers[topic].push(handler);
+        },
 
-    EventEmitter.trigger = function(topic, data) {
-        var subs = subscribers[topic] || [];
-        
-        for(var sub in subs) {
-            subs[sub](topic, data);
-        }
-    };
-        
-    EventEmitter.on = function(topic, handler) {
-        subscribers[topic] = subscribers[topic] || [];
-        subscribers[topic].push(handler);
-    };
-        
-    EventEmitter.off = function(topic, hanlder) {
-        var subs = subscribers[topic] || [];
-        
-        for(var i=0; i<subs.length; i++) {
-            if(''+subs[i] == ''+hanlder) {
-                subs.splice(i, 1);
+        off: function (topic, handler) {
+            var subs = _subscribers[topic] || [];
+            
+            for (var i = 0; i < subs.length; i++) {
+                if ('' + subs[i] == '' + handler) {
+                    subs.splice(i, 1);
+                }
             }
         }
     };
-
-}).call(this);
+})();
