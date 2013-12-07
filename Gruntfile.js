@@ -2,13 +2,13 @@ module.exports = function(grunt) {
 	grunt.initConfig({
 		pkg: grunt.file.readJSON('package.json'),
 		uglify: {
-			dist: {
+			build: {
 				src: '<%= pkg.name %>.js',
 				dest: '<%= pkg.name %>.min.js'
 			}
 		},
 		concat: {
-			dist: {
+			build: {
 				src: [
 					'src/champion.js',
 					'src/util/*.js',
@@ -48,12 +48,8 @@ module.exports = function(grunt) {
 			}
 		},
 		watch: {
-			// testApp: {
-			// 	files: ['test-app/**/*', 'src/*.js'],
-			// 	tasks: ['browserify:dev', 'concat:dev']
-			// },
 			test: {
-				files: ['src/src/**/*.js', 'test/spec/**/*.js'],
+				files: ['src/**/*.js', 'test/spec/**/*.js'],
 				tasks: ['jasmine']
 			}
 		},
@@ -66,7 +62,7 @@ module.exports = function(grunt) {
 			}
 		},
 		jasmine: {
-			src: 'src/src/*.js',
+			src: 'src/*.js',
 			options: {
 				specs: 'test/spec/*.js',
 				vendor: [
@@ -88,6 +84,6 @@ module.exports = function(grunt) {
 	grunt.loadNpmTasks('grunt-contrib-jasmine');
 
 	grunt.registerTask('test', ['watch:test']);
+	grunt.registerTask('build', ['concat:build', 'uglify:build']);
 	grunt.registerTask('start', ['concurrent']);
-	grunt.registerTask('deploy', ['env:prod', 'browserify:all', 'uglify', 'sass:prod']);
 };

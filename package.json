@@ -21,7 +21,8 @@
   "dependencies": {
   },
   "scripts": {
-    "start": "node app.js"
+    "start": "node server/server.js",
+    "test": "grunt test"
   },
   "devDependencies": {
     "grunt": "~0.4.1",
