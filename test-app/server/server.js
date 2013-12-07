@@ -31,19 +31,19 @@ function HttpServer(handlers) {
     this.server = http.createServer(this.handleRequest_.bind(this));
 }
 
-HttpServer.prototype.start = function(port) {
+HttpServer.prototype.start = function (port) {
     this.port = port;
     this.server.listen(port);
     util.puts('Http Server running at http://localhost:' + port + '/');
 };
 
-HttpServer.prototype.parseUrl_ = function(urlString) {
+HttpServer.prototype.parseUrl_ = function (urlString) {
     var parsed = url.parse(urlString);
     parsed.pathname = url.resolve('/', parsed.pathname);
     return url.parse(url.format(parsed), true);
 };
 
-HttpServer.prototype.handleRequest_ = function(req, res) {
+HttpServer.prototype.handleRequest_ = function (req, res) {
     var logEntry = req.method + ' ' + req.url;
     if (req.headers['user-agent']) {
         logEntry += ' ' + req.headers['user-agent'];
@@ -62,7 +62,8 @@ HttpServer.prototype.handleRequest_ = function(req, res) {
 /**
  * Handles static content.
  */
-function StaticServlet() {}
+function StaticServlet() {
+}
 
 StaticServlet.MimeMap = {
     'txt': 'text/plain',
@@ -78,16 +79,16 @@ StaticServlet.MimeMap = {
     'svg': 'image/svg+xml'
 };
 
-StaticServlet.prototype.handleRequest = function(req, res) {
+StaticServlet.prototype.handleRequest = function (req, res) {
     var self = this;
-    var root =  '../../';
-    var path = (root + req.url.pathname).replace('//','/').replace(/%(..)/g, function(match, hex){
+    var root = '../../';
+    var path = (root + req.url.pathname).replace('//', '/').replace(/%(..)/g, function (match, hex) {
         return String.fromCharCode(parseInt(hex, 16));
     });
 
     console.log(path)
 
-    if (path == root)  {
+    if (path == root) {
         return self.sendFile_(req, res, config.indexPath);
     }
 
@@ -95,7 +96,7 @@ StaticServlet.prototype.handleRequest = function(req, res) {
     return self.sendFile_(req, res, path);
 }
 
-StaticServlet.prototype.sendError_ = function(req, res, error) {
+StaticServlet.prototype.sendError_ = function (req, res, error) {
     res.writeHead(500, {
         'Content-Type': 'text/html'
     });
@@ -108,7 +109,7 @@ StaticServlet.prototype.sendError_ = function(req, res, error) {
 };
 
 
-StaticServlet.prototype.sendFile_ = function(req, res, path) {
+StaticServlet.prototype.sendFile_ = function (req, res, path) {
     var self = this;
     var file = fs.createReadStream(path);
     res.writeHead(200, {
@@ -119,15 +120,19 @@ StaticServlet.prototype.sendFile_ = function(req, res, path) {
         res.end();
     } else {
         file.on('data', res.write.bind(res));
-        file.on('close', function() {
+        file.on('close', function () {
             res.end();
         });
-        file.on('error', function(error) {
-            self.sendError_(req, res, error);
-        });
+//        file.on('error', function(error) {
+//            self.sendError_(req, res, error);
+//        });
+
+        file.on('error', function (error) {
+            // return index
+            return self.sendFile_(req, res, config.indexPath);
+        })
     }
 };
-
 
 
 // Must be last,

@@ -8,5 +8,46 @@
 Test App
 
 
+<script src="../../framework/framework.router.js"></script>
+
+
+<script type="text/javascript">
+
+    (function () {
+
+        window.onload = function () {
+
+            router.addRoute("/", function(args) {
+               console.log('home');
+            });
+
+            router.addRoute('test', function (args) {
+
+                console.log(args);
+                console.log('test');
+
+            });
+
+            router.addRoute('/test/:person', function (args) {
+
+                  console.log(args)
+                  console.log('test/parameters');
+
+            });
+
+            router.addRoute("/*", function () {
+
+                console.log('route not found');
+
+            });
+
+        };
+
+
+    })();
+
+
+</script>
+
 </body>
 </html>
