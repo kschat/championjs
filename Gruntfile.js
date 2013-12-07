@@ -1,27 +1,41 @@
 module.exports = function(grunt) {
 	grunt.initConfig({
 		pkg: grunt.file.readJSON('package.json'),
-		// browserify: {
-		// 	options: {
-		// 		alias: [
-
-		// 		]
-		// 	},
-		// 	test: {
-		// 		src: 'test/spec/**/*.js',
-		// 		dest: 'test/test.js'
-		// 	}
-		// },
 		uglify: {
-			build: {
-				src: 'framework/src/*.js',
-				dest: 'framework/build/<%= pkg.name %>.min.js'
+			dist: {
+				src: '<%= pkg.name %>.js',
+				dest: '<%= pkg.name %>.min.js'
 			}
 		},
 		concat: {
-			build: {
-				src: 'framework/src/*.js',
-				dest: 'framework/build/<%= pkg.name %>.js'
+			dist: {
+				src: [
+					'src/champion.js',
+					'src/util/*.js',
+					'src/event.js',
+					'src/router.js',
+					'src/view.js',
+					'src/model.js',
+					'src/presenter.js'
+				],
+				dest: '<%= pkg.name %>.js',
+			},
+			options: {
+				banner: '/*\n' +
+						' *\t<%= pkg.name %>.js - <%= pkg.version %>\n' +
+						' *\tContributors: ' + '<%= pkg.contributors[0].name %>, <%= pkg.contributors[1].name %>\n' +
+						' *\tDescription: <%= pkg.description %>\n' + 
+						' *\tSource: <%= pkg.repository.url %>\n' + 
+						' *\tChampion may be freely distributed under the <%= pkg.license %> license\n' +
+						' */\n\n' +
+						';(function($, undefined) { \n\t\'use strict\';\n\n',
+				footer: '\n\n}).call(this, jQuery);',
+				separator: '\n\n',
+				//Adds the file name in a comment before the module and properly tabs the code
+				process: function(src, filepath) {
+					return '\t// Source: ' + filepath + '\n' +
+						src.replace(/^/gm, '\t');
+				}
 			}
 		},
 		nodemon: {
@@ -35,11 +49,11 @@ module.exports = function(grunt) {
 		},
 		watch: {
 			// testApp: {
-			// 	files: ['test-app/**/*', 'framework/*.js'],
+			// 	files: ['test-app/**/*', 'src/*.js'],
 			// 	tasks: ['browserify:dev', 'concat:dev']
 			// },
 			test: {
-				files: ['framework/src/**/*.js', 'test/spec/**/*.js'],
+				files: ['src/src/**/*.js', 'test/spec/**/*.js'],
 				tasks: ['jasmine']
 			}
 		},
@@ -52,7 +66,7 @@ module.exports = function(grunt) {
 			}
 		},
 		jasmine: {
-			src: 'framework/src/*.js',
+			src: 'src/src/*.js',
 			options: {
 				specs: 'test/spec/*.js',
 				vendor: [
@@ -66,7 +80,6 @@ module.exports = function(grunt) {
 		}
 	});
 
-	//grunt.loadNpmTasks('grunt-browserify');
 	grunt.loadNpmTasks('grunt-contrib-uglify');
 	grunt.loadNpmTasks('grunt-contrib-concat');
 	grunt.loadNpmTasks('grunt-contrib-watch');

@@ -1,21 +1,21 @@
 {
-  "name": "unnamed-js-framework",
-  "description": "Yet another frontend JS framework",
+  "name": "champion",
+  "description": "Yet another frontend MVP JS framework",
   "version": "0.0.1",
   "contributors": [
     {
-      "name": "Kyle Schattler",
-      "email": "kyleschattler@gmail.com"
-    },
-    {
       "name": "Jeff Taylor",
       "email": ""
+    },
+    {
+      "name": "Kyle Schattler",
+      "email": "kyleschattler@gmail.com"
     }
   ],
   "private": true,
   "repository": {
     "type": "git",
-    "url": "https://github.com/JeffreyTaylor/unnamed-js-framework.git"
+    "url": "https://github.com/JeffreyTaylor/champion.git"
   },
   "license": "MIT",
   "dependencies": {
