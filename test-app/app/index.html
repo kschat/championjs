@@ -7,8 +7,8 @@
 
 Test App
 
-
-<script src="../../dist/champion.js"></script>
+<script src="/app/scripts/vendor/jquery-2.0.3.min.js" type="text/javascript"></script>
+<script src="/app/scripts/champion.js" type="text/javascript"></script>
 
 
 <script type="text/javascript">
@@ -17,25 +17,25 @@ Test App
 
         window.onload = function () {
 
-            router.addRoute("/", function(args) {
+            champ.addRoute("/", function(args) {
                console.log('home');
             });
 
-            router.addRoute('test', function (args) {
+            champ.addRoute('/test', function (args) {
 
                 console.log(args);
                 console.log('test');
 
             });
 
-            router.addRoute('/test/:person', function (args) {
+            champ.addRoute('/test/:person', function (args) {
 
                   console.log(args)
                   console.log('test/parameters');
 
             });
 
-            router.addRoute("/*", function () {
+            champ.addRoute("/*", function () {
 
                 console.log('route not found');
 

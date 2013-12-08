@@ -45,5 +45,5 @@ champ.extend(view.prototype, {
                 };
             })(this, name));
         }
-    },
+    }
 });

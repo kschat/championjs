@@ -1,7 +1,5 @@
-#!/usr/bin/env node
 
-var util = require('util'),
-    http = require('http'),
+var http = require('http'),
     fs = require('fs'),
     url = require('url'),
     config = require('./config');
@@ -34,22 +32,21 @@ function HttpServer(handlers) {
 HttpServer.prototype.start = function (port) {
     this.port = port;
     this.server.listen(port);
-    util.puts('Http Server running at http://localhost:' + port + '/');
+    console.log('Http Server running at http://localhost:' + port + '/');
 };
 
 HttpServer.prototype.parseUrl_ = function (urlString) {
     var parsed = url.parse(urlString);
+
     parsed.pathname = url.resolve('/', parsed.pathname);
+
     return url.parse(url.format(parsed), true);
 };
 
 HttpServer.prototype.handleRequest_ = function (req, res) {
-    var logEntry = req.method + ' ' + req.url;
-    if (req.headers['user-agent']) {
-        logEntry += ' ' + req.headers['user-agent'];
-    }
-    util.puts(logEntry);
+
     req.url = this.parseUrl_(req.url);
+
     var handler = this.handlers[req.method];
     if (!handler) {
         res.writeHead(501);
@@ -81,37 +78,25 @@ StaticServlet.MimeMap = {
 
 StaticServlet.prototype.handleRequest = function (req, res) {
     var self = this;
-    var root = '../../';
+    var root = '../';
+
     var path = (root + req.url.pathname).replace('//', '/').replace(/%(..)/g, function (match, hex) {
         return String.fromCharCode(parseInt(hex, 16));
     });
 
-    console.log(path)
 
     if (path == root) {
         return self.sendFile_(req, res, config.indexPath);
     }
 
-    console.log('returning' + path);
     return self.sendFile_(req, res, path);
 }
-
-StaticServlet.prototype.sendError_ = function (req, res, error) {
-    res.writeHead(500, {
-        'Content-Type': 'text/html'
-    });
-    res.write('<!doctype html>\n');
-    res.write('<title>Internal Server Error</title>\n');
-    res.write('<h1>Internal Server Error</h1>');
-    res.write('<pre>' + escapeHtml(util.inspect(error)) + '</pre>');
-    util.puts('500 Internal Server Error');
-    util.puts(util.inspect(error));
-};
 
 
 StaticServlet.prototype.sendFile_ = function (req, res, path) {
     var self = this;
     var file = fs.createReadStream(path);
+
     res.writeHead(200, {
         'Content-Type': StaticServlet.
             MimeMap[path.split(/[. ]+/).pop()] || 'text/plain'
@@ -119,16 +104,13 @@ StaticServlet.prototype.sendFile_ = function (req, res, path) {
     if (req.method === 'HEAD') {
         res.end();
     } else {
+
         file.on('data', res.write.bind(res));
         file.on('close', function () {
             res.end();
         });
-//        file.on('error', function(error) {
-//            self.sendError_(req, res, error);
-//        });
 
         file.on('error', function (error) {
-            // return index
             return self.sendFile_(req, res, config.indexPath);
         })
     }

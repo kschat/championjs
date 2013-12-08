@@ -18,7 +18,8 @@ module.exports = function(grunt) {
 					'src/model.js',
 					'src/presenter.js'
 				],
-				dest: '<%= pkg.name %>.js',
+				dest:
+                    '<%= pkg.name %>.js'
 			},
 			options: {
 				banner: '/*\n' +

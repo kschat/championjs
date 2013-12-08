@@ -1,10 +1,15 @@
 
 // to do --
-// 1) add query string parsing
-// 2) add fallbacks for browsers that don't support push/popstate
+
+// 1) add registration for views / presenters
 
 
-var router = (function () {
+// 2) add query string parsing
+// 3) add fallbacks for browsers that don't support push/popstate
+
+
+(function (champ) {
+
 
     var _routes = [];
 
@@ -77,10 +82,9 @@ var router = (function () {
 
     start();
 
-    return  {
-       addRoute: function (route, callback) {
-           _routes.push({params: parseRoute(route), callback: callback})
-       }
+
+    champ.addRoute = function (route, callback) {
+        _routes.push({params: parseRoute(route), callback: callback})
     };
 
-})();
+})(champ || {});
