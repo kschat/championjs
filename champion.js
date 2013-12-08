@@ -84,28 +84,62 @@
 	})();
 
 	// Source: src/router.js
-	
-	// to do --
-	
-	// 1) add registration for views / presenters
-	
-	
-	// 2) add query string parsing
-	// 3) add fallbacks for browsers that don't support push/popstate
+	//todo
+	// 1) add query string parsing
+	// 2) add fallbacks for browsers that don't support push/popstate
 	
 	
-	(function (champ) {
+	(function (champ, window) {
+	
+	    var _routes = [],
+	        _currentHash = null;
+	
+	    var onPopState = function (e) {
+	        matchRoute(document.location.pathname);
+	    };
+	
+	    var startHashMonitoring = function () {
+	
+	        setInterval(function () {
+	            var newHash = window.location.href;
+	
+	           if (_currentHash !== newHash) {
+	               _currentHash = newHash;
+	               matchRoute(document.location.pathname);
+	           }
+	        })
 	
 	
-	    var _routes = [];
+	    };
+	
+	    var forceChange = function (route) {
+	
+	        console.log('forcing change');
+	
+	        var html5Mode = !!('pushState' in window.history);
+	
+	        console.log(html5Mode);
+	
+	        if (matchRoute(route) == true) {
+	
+	            if (html5Mode) {
+	                //state null for now
+	                window.history.replaceState(null, window.document.title, getBase() + route)
+	            }
+	            else {
+	
+	                window.location.hash = route;
+	
+	            }
+	
+	        }
+	    };
 	
 	    var parseRoute = function (path) {
 	
 	        var nameRegex = new RegExp(":([^/.\\\\]+)", "g"),
-	            newRegex = "" + path;
-	
-	
-	        var values = nameRegex.exec(path);
+	            newRegex = "" + path,
+	            values = nameRegex.exec(path);
 	
 	        if (values != null) {
 	
@@ -121,6 +155,7 @@
 	    var matchRoute = function (url) {
 	
 	        for (var i = 0; i < _routes.length; i++) {
+	
 	            var route = _routes[i],
 	                match = route.params.regex.exec(url);
 	
@@ -137,22 +172,58 @@
 	
 	    };
 	
+	    var getBase = function () {
+	
+	        var base = window.location.protocol + '//' + window.location.hostname;
+	
+	        if (window.location.port) {
+	
+	            base += ':' + window.location.port;
+	        }
+	
+	        return base;
+	
+	    };
+	
+	    var which = function (e) {
+	        e = e || window.event;
+	
+	        var result = e.which == null ? e.button : e.which;
+	
+	        return result;
+	    };
+	
+	
+	    var sameOrigin = function (href) {
+	
+	        return  href.indexOf(getBase()) == 0;
+	    };
+	
+	
 	    var start = function () {
 	
-	        var loaded = false;
+	        var loaded = false,
+	            html5Mode = !!('pushState' in window.history);
 	
 	        if (loaded == false) {
 	            matchRoute(document.location.pathname);
 	            loaded = true;
 	        }
 	
-	        window.addEventListener("popstate", function(e) {
+	        if (html5Mode == true) {
 	
-	            matchRoute(document.location.pathname);
+	             window.addEventListener('popstate', onPopState, false);
 	
-	        }, false);
+	        }
+	        else {
+	
+	            startHashMonitoring();
+	
+	        }
 	
 	        window.addEventListener("load", function(e) {
+	
+	            console.log('window loaded');
 	
 	            if(loaded == false) {
 	                matchRoute(document.location.pathname);
@@ -167,7 +238,6 @@
 	            if (e.metaKey || e.ctrlKey || e.shiftKey) return;
 	            if (e.defaultPrevented) return;
 	
-	            console.log('ensuring link');
 	            // ensure link
 	            var el = e.target;
 	            while (el && 'A' != el.nodeName) el = el.parentNode;
@@ -194,25 +264,10 @@
 	
 	            e.preventDefault();
 	
-	            console.log('prevented');
-	
-	            matchRoute(orig);
+	            forceChange(orig);
 	
 	        }, false);
 	
-	        var which = function (e) {
-	            e = e || window.event;
-	
-	            var result = e.which == null ? e.button : e.which;
-	
-	            return result;
-	        }
-	
-	        var sameOrigin = function (href) {
-	            var origin = location.protocol + '//' + location.hostname;
-	            if (location.port) origin += ':' + location.port;
-	            return 0 == href.indexOf(origin);
-	        }
 	    };
 	
 	    start();
@@ -222,7 +277,7 @@
 	        _routes.push({params: parseRoute(route), callback: callback})
 	    };
 	
-	})(champ || {});
+	})(champ || {}, window);
 	
 
 	// Source: src/view.js
