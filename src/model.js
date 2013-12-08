@@ -10,8 +10,19 @@ var model = champ.model = function(name, options) {
 };
 
 champ.extend(model.prototype, {
-    property: function(prop, val, silent) {
-        if(!this._properties[prop]) { throw 'Property doesn\'t exist'; }
+    property: function property(prop, val, silent) {
+        //If property isn't a string, assume it's an object literal
+        //and call property on each key value pair
+        if(typeof(prop) !== 'string') {
+            for(var name in prop) {
+                if(!prop.hasOwnProperty(name)) { continue; }
+                property.call(this, name, prop[name], val);
+            }
+
+            return;
+        }
+
+        if(!this._properties[prop] && !val) { throw 'Property doesn\'t exist'; }
         if(!val) { return this._properties[prop]; }
         this._properties[prop] = val;
         

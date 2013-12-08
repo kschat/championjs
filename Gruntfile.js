@@ -50,7 +50,7 @@ module.exports = function(grunt) {
 		watch: {
 			test: {
 				files: ['src/**/*.js', 'test/spec/**/*.js'],
-				tasks: ['jasmine']
+				tasks: ['concat:build', 'jasmine']
 			}
 		},
 		concurrent: {
@@ -62,13 +62,14 @@ module.exports = function(grunt) {
 			}
 		},
 		jasmine: {
-			src: 'src/*.js',
+			src: 'champion.js',
 			options: {
 				specs: 'test/spec/*.js',
 				vendor: [
-					'node_modules/sinon/pkg/sinon.js', 
-					'node_modules/chai/chai.js', 
-					'node_modules/sinon-chai/lib/sinon-chai.js'
+					'test/vendor/sinon/sinon.js', 
+					'test/vendor/chai/chai.js', 
+					'test/vendor/sinon-chai/sinon-chai.js',
+					'test/vendor/jquery/jquery.js'
 				],
 				outfile: 'test/_SpecRunner.html',
 				keepRunner: true
@@ -83,7 +84,7 @@ module.exports = function(grunt) {
 	grunt.loadNpmTasks('grunt-concurrent');
 	grunt.loadNpmTasks('grunt-contrib-jasmine');
 
-	grunt.registerTask('test', ['watch:test']);
+	grunt.registerTask('test', ['jasmine']);
 	grunt.registerTask('build', ['concat:build', 'uglify:build']);
 	grunt.registerTask('start', ['concurrent']);
 };

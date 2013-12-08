@@ -18,8 +18,7 @@
     "url": "https://github.com/JeffreyTaylor/champion.git"
   },
   "license": "MIT",
-  "dependencies": {
-  },
+  "dependencies": {},
   "scripts": {
     "start": "node server/server.js",
     "test": "grunt test"
@@ -34,7 +33,8 @@
     "grunt-contrib-jasmine": "~0.5.2",
     "chai": "~1.8.1",
     "sinon-chai": "~2.4.0",
-    "sinon": "~1.7.3"
+    "sinon": "~1.7.3",
+    "jquery": "~1.8.3"
   },
   "engines": {
     "node": "~0.10.18",
