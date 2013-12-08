@@ -5,10 +5,27 @@
 </head>
 <body>
 
-Test App
+<a href="/">Home</a>
+<a href="/profile">Profile</a>
+
+
+<div id="home-container">
+
+    <button id="myButton">Click me</button>
+
+</div>
+
+<div id="profile-container">
+
+    profile
+
+</div>
 
 <script src="/app/scripts/vendor/jquery-2.0.3.min.js" type="text/javascript"></script>
 <script src="/app/scripts/champion.js" type="text/javascript"></script>
+
+<script src="/app/scripts/routes/home/homeView.js" type="text/javascript"></script>
+<script src="/app/scripts/routes/home/homePresenter.js" type="text/javascript"></script>
 
 
 <script type="text/javascript">
@@ -18,22 +35,21 @@ Test App
         window.onload = function () {
 
             champ.addRoute("/", function(args) {
-               console.log('home');
-            });
 
-            champ.addRoute('/test', function (args) {
-
-                console.log(args);
-                console.log('test');
+                console.log('/home');
+                $("#home-container").show();
+                $("#profile-container").hide();
 
             });
 
-            champ.addRoute('/test/:person', function (args) {
+            champ.addRoute('/profile', function (args) {
 
-                  console.log(args)
-                  console.log('test/parameters');
+                console.log('/profile');
+                $("#home-container").hide();
+                $("#profile-container").show();
 
             });
+
 
             champ.addRoute("/*", function () {
 

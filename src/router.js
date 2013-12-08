@@ -42,7 +42,8 @@
                 continue;
             }
 
-            route.callback({url: url})
+            route.callback({url: url});
+
             return true;
         }
 
@@ -63,7 +64,7 @@
 
             matchRoute(document.location.pathname);
 
-        });
+        }, false);
 
         window.addEventListener("load", function(e) {
 
@@ -72,12 +73,60 @@
                 loaded = true;
             }
 
-        });
+        }, false);
 
-        window.addEventListener("hashchange", function(e) {
+        window.addEventListener('click', function (e) {
 
-            matchRoute(document.location.pathname);
-        });
+            if (1 != which(e)) return;
+            if (e.metaKey || e.ctrlKey || e.shiftKey) return;
+            if (e.defaultPrevented) return;
+
+            console.log('ensuring link');
+            // ensure link
+            var el = e.target;
+            while (el && 'A' != el.nodeName) el = el.parentNode;
+            if (!el || 'A' != el.nodeName) return;
+
+            // ensure non-hash for the same path
+            var link = el.getAttribute('href');
+            if (el.pathname == location.pathname && (el.hash || '#' == link)) return;
+
+            // check target
+            if (el.target) return;
+
+            // x-origin
+            if (!sameOrigin(el.href)) return;
+
+            // rebuild path
+            var path = el.pathname + el.search + (el.hash || '');
+
+            // same page
+            var orig = path + el.hash;
+
+            path = path.replace('/', '');
+            if ('/' && orig == path) return;
+
+            e.preventDefault();
+
+            console.log('prevented');
+
+            matchRoute(orig);
+
+        }, false);
+
+
+        function which(e) {
+            e = e || window.event;
+            return null == e.which
+                ? e.button
+                : e.which;
+        }
+
+        function sameOrigin(href) {
+            var origin = location.protocol + '//' + location.hostname;
+            if (location.port) origin += ':' + location.port;
+            return 0 == href.indexOf(origin);
+        }
     };
 
     start();
