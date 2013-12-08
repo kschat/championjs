@@ -200,15 +200,15 @@
 	
 	        }, false);
 	
-	
-	        function which(e) {
+	        var which = function (e) {
 	            e = e || window.event;
-	            return null == e.which
-	                ? e.button
-	                : e.which;
+	
+	            var result = e.which == null ? e.button : e.which;
+	
+	            return result;
 	        }
 	
-	        function sameOrigin(href) {
+	        var sameOrigin = function (href) {
 	            var origin = location.protocol + '//' + location.hostname;
 	            if (location.port) origin += ':' + location.port;
 	            return 0 == href.indexOf(origin);

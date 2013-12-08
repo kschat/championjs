@@ -200,15 +200,15 @@
 	
 	        }, false);
 	
-	        var which = function (e) {
+	
+	        function which(e) {
 	            e = e || window.event;
-	
-	            var result = e.which == null ? e.button : e.which;
-	
-	            return result;
+	            return null == e.which
+	                ? e.button
+	                : e.which;
 	        }
 	
-	        var sameOrigin = function (href) {
+	        function sameOrigin(href) {
 	            var origin = location.protocol + '//' + location.hostname;
 	            if (location.port) origin += ':' + location.port;
 	            return 0 == href.indexOf(origin);
