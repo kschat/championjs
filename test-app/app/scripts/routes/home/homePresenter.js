@@ -1,13 +1,13 @@
 var homePresenter = champ.presenter('homePresenter', {
 
     templates: {
-        homeTemplate: 'home.html'
+        homeTemplate: 'app/scripts/routes/home/home.html'
     },
     state: {
-      hasLoaded: false
+        hasLoaded: false
     },
 
-    init: function() {
+    init: function () {
 
     },
 
@@ -20,11 +20,16 @@ var homePresenter = champ.presenter('homePresenter', {
 
     open: function () {
 
+        var self = this;
+
         if (!this.state.hasLoaded) {
 
-            //this._views.homeView.render(champ.templates.get(this.templates.homeTemplate));
+            $.when(champ.templates.get(this.templates.homeTemplate))
+                .then(function (template) {
 
-            this.state.hasLoaded = true;
+                    self._views.homeView.render(template);
+                    self.state.hasLoaded = true;
+                });
         }
 
         this._views.homeView.show();

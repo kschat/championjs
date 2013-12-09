@@ -1,7 +1,7 @@
 var profilePresenter = champ.presenter('profilePresenter', {
 
     templates: {
-        homeTemplate: 'profile.html'
+        profileTemplate: 'app/scripts/routes/profile/profile.html'
     },
     state: {
         hasLoaded: false
@@ -16,11 +16,16 @@ var profilePresenter = champ.presenter('profilePresenter', {
 
     open: function () {
 
+        var self = this;
+
         if (!this.state.hasLoaded) {
 
-            //this._views.homeView.render(champ.templates.get(this.templates.homeTemplate));
+            $.when(champ.templates.get(this.templates.profileTemplate))
+                .then(function (template) {
 
-            this.state.hasLoaded = true;
+                    self._views.profileView.render(template);
+                    self.state.hasLoaded = true;
+                });
         }
 
         this._views.profileView.show();

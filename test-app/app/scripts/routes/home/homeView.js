@@ -7,12 +7,12 @@ var homeView = champ.view('homeView', {
     container: $('#home-container'),
 
     DOM: {
-        'myButton': '#myButton'
+        //'myButton': '#myButton'
     },
 
-    render: function () {
+    render: function (template) {
 
-        this.container.html('').html(template);
+        this.container.html(template);
 
     },
 

@@ -4,9 +4,9 @@ var profileView = champ.view('profileView', {
 
     container: $('#profile-container'),
 
-    render: function () {
+    render: function (template) {
 
-        this.container.html('').html(template);
+        this.container.html(template);
 
     },
 

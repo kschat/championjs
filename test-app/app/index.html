@@ -11,13 +11,9 @@
 
 <div id="home-container">
 
-    <button id="myButton">Click me</button>
-
 </div>
 
 <div id="profile-container">
-
-    profile
 
 </div>
 
@@ -38,10 +34,12 @@
         window.onload = function () {
 
             champ.router.addRoute("/", function (e) {
+                routesChanging();
                 homePresenter.open();
             });
 
             champ.router.addRoute('/profile', function (e) {
+                routesChanging();
                 profilePresenter.open();
             });
 
