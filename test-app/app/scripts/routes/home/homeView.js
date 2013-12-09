@@ -1,11 +1,26 @@
 var homeView = champ.view('homeView', {
 
+    _hasLoaded : false,
+
     init: function() {},
 
-    container: '#home-container',
+    container: $('#home-container'),
 
     DOM: {
         'myButton': '#myButton'
+    },
+
+    render: function () {
+
+        this.container.html('').html(template);
+
+    },
+
+    show: function () {
+
+        console.log('home view show');
+
+         this.container.show();
     },
 
     toggleColors: function () {

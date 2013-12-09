@@ -27,6 +27,9 @@
 <script src="/app/scripts/routes/home/homeView.js" type="text/javascript"></script>
 <script src="/app/scripts/routes/home/homePresenter.js" type="text/javascript"></script>
 
+<script src="/app/scripts/routes/profile/profileView.js" type="text/javascript"></script>
+<script src="/app/scripts/routes/profile/profilePresenter.js" type="text/javascript"></script>
+
 
 <script type="text/javascript">
 
@@ -34,29 +37,26 @@
 
         window.onload = function () {
 
-            champ.addRoute("/", function(args) {
-
-                console.log('/home');
-                $("#home-container").show();
-                $("#profile-container").hide();
-
+            champ.router.addRoute("/", function (e) {
+                homePresenter.open();
             });
 
-            champ.addRoute('/profile', function (args) {
-
-                console.log('/profile');
-                $("#home-container").hide();
-                $("#profile-container").show();
-
+            champ.router.addRoute('/profile', function (e) {
+                profilePresenter.open();
             });
 
-
-            champ.addRoute("/*", function () {
+            champ.router.addRoute("/*", function () {
 
                 console.log('route not found');
 
             });
 
+        };
+
+        // to do -- replace with champ events.
+        var routesChanging = function () {
+            $("#home-container").hide();
+            $("#profile-container").hide();
         };
 
 

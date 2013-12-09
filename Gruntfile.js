@@ -16,7 +16,8 @@ module.exports = function(grunt) {
 					'src/router.js',
 					'src/view.js',
 					'src/model.js',
-					'src/presenter.js'
+					'src/presenter.js',
+                    'src/templates/*.js'
 				],
 				dest:
                     '<%= pkg.name %>.js'
