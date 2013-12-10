@@ -17,20 +17,49 @@ describe('model module', function() {
 		this.triggerSpy.restore();
 	});
 
+	it('Creates a new instance of an empty model', function() {
+		var newModel = champ.model('newModel');
+		expect(newModel instanceof champ.model, 'Was not instance of Model').to.be.true;
+		expect(champ.models.newModel).to.exist;
+		expect(newModel.name).to.equal('newModel');
+
+		newModel.property('testProp', 'new value');
+		expect(newModel.property('testProp')).to.equal('new value');
+	});
+
 	it('Creates a new instance of a model without using the "new" keyword', function() {
 		expect(this.model instanceof champ.model, 'Was not instance of Model').to.be.true;
 		expect(champ.models.testModel).to.exist;
-		expect(this.model._name).to.equal('testModel');
+		expect(this.model.name).to.equal('testModel');
 	});
 
 	it('Creates a new instance of a model when using the "new" keyword', function() {
 		expect(new champ.model('noNewTest', {}) instanceof champ.model, 'Was not instance of Model').to.be.true;
 		expect(champ.models.noNewTest).to.exist;
-		expect(champ.models.noNewTest._name).to.equal('noNewTest');
+		expect(champ.models.noNewTest.name).to.equal('noNewTest');
 	});
 
 	it('Creates a new instance of a model and sets the _properties property', function() {
-		expect(this.model._properties.testProp).to.equal('test');
+		expect(this.model.properties.testProp).to.equal('test');
+	});
+
+	it('Extends the model module and creates an instance of the new module', function() {
+		var customMethod = function() {};
+
+		var MyModel = champ.model.extend({
+			init: function(options) {
+				this.property('myValue', options.myValue);
+			},
+
+			customMethod: customMethod
+		});
+
+		var myModel = MyModel('myModel', {
+			myValue: 'test value'
+		});
+
+		expect(myModel.property('myValue')).to.equal('test value');
+		expect(myModel.customMethod).to.equal(customMethod);
 	});
 
 	describe('property()', function() {

@@ -31,8 +31,14 @@
 	this.champ.presenters = {};
 
 	// Source: src/util/extend.js
-	champ.extend = function (obj, proto) {
+	champ.extend = function (obj, proto, skip) {
+		skip = skip || [];
+	
 	    for (var name in proto) {
+	    	for(var i=0; i<skip.length; i++) { 
+	    		if(skip[i] in proto) { continue; }
+	    	}
+	
 	        obj[name] = proto[name];
 	    }
 	
@@ -175,19 +181,18 @@
 	var view = champ.view = function (name, options) {
 	    if(!(this instanceof view)) { return new view(name, options); }
 	    
-	    this._options = options || {};
-	    champ.extend(this, options);
-	    
-	    this._name = name;
-	    this._$container = typeof(options.container === 'string') 
+	    options = options || {};
+	    this.name = Array.prototype.splice.call(arguments, 0, 1);
+	    this.container = typeof(options.container === 'string') 
 	        ? $(options.container) 
 	        : options.container || $('<div>');
+	
+	    this.DOM = options.DOM || {};
 	    
-	    this._DOM = options.DOM || {};
-	    
-	    this.registerDom(this._DOM);
+	    this.registerDom(this.DOM);
 	    this.registerDomEvents();
-	    
+	
+	    champ.extend(this, options, ['name', 'container', 'DOM']);    
 	    this.init.apply(this, arguments);
 	    champ.namespace('views')[name] = this;
 	};
@@ -196,9 +201,9 @@
 	    init: function() {},
 	    
 	    addDom: function(name, element) {
-	        element = this._$container.find(element);
+	        element = this.container.find(element);
 	        if(element.length > 0) {
-	            this._DOM[name] = element;
+	            this.DOM[name] = element;
 	        }
 	    },
 	    
@@ -210,73 +215,86 @@
 	    
 	    //Intercepts all events fired on the DOM objects in the view and fires custom events for presenters
 	    registerDomEvents: function() {
-	        for(var name in this._DOM) {
-	            var el = this._DOM[name];
+	        for(var name in this.DOM) {
+	            var el = this.DOM[name];
 	            
 	            el.on(DOMEvents.join(' '), (function(view, name) {
 	                return function(e) {
-	                    events.trigger('view:' + view._name + ':' + name + ' ' + e.type, e);
+	                    events.trigger('view:' + view.name + ':' + name + ' ' + e.type, e);
 	                };
 	            })(this, name));
 	        }
-	    },
+	    }
 	});
+	
+	champ.view.extend = function(options) {
+	    return function(name, opts) {
+	        return champ.view(name, champ.extend(options, opts));
+	    };
+	};
 
 	// Source: src/model.js
 	var model = champ.model = function(name, options) {
 	    if(!(this instanceof model)) { return new model(name, options); }
 	    
-	    this._options = options || {};
-	    champ.extend(this, options);
+	    options = options || {};
+	    this.name = Array.prototype.splice.call(arguments, 0, 1)[0];
+	    this.properties = options.properties || {};
 	    
-	    this._name = name;
-	    this._properties = options.properties;
+	    champ.extend(this, options, ['name', 'properties']);
+	    this.init.apply(this, arguments);
 	    champ.namespace('models')[name] = this;
 	};
 	
 	champ.extend(model.prototype, {
+	    init: function(options) {},
+	
 	    property: function property(prop, val, silent) {
 	        //If property isn't a string, assume it's an object literal
 	        //and call property on each key value pair
 	        if(typeof(prop) !== 'string') {
-	            for(var name in prop) {
-	                if(!prop.hasOwnProperty(name)) { continue; }
-	                property.call(this, name, prop[name], val);
+	            for(var key in prop) {
+	                if(!prop.hasOwnProperty(key)) { continue; }
+	                property.call(this, key, prop[key], val);
 	            }
 	
 	            return;
 	        }
 	
-	        if(!this._properties[prop] && !val) { throw 'Property doesn\'t exist'; }
-	        if(!val) { return this._properties[prop]; }
-	        this._properties[prop] = val;
+	        if(!this.properties[prop] && !val) { throw 'Property doesn\'t exist'; }
+	        if(!val) { return this.properties[prop]; }
+	        this.properties[prop] = val;
 	        
 	        if(!silent) {
-	            events.trigger('model:' + this._name + ':' + 'changed', {
+	            events.trigger('model:' + this.name + ':' + 'changed', {
 	                property: prop,
 	                value: val
 	            });
 	        }
 	    }
 	});
+	
+	champ.model.extend = function(options) {
+	    return function(name, opts) {
+	        return champ.model(name, champ.extend(options, opts));
+	    };
+	};
 
 	// Source: src/presenter.js
 	var presenter = champ.presenter = function(name, options) {
 	    if(!(this instanceof presenter)) { return new presenter(name, options); }
 	    
-	    this._options = options || {};
-	    champ.extend(this, options);
+	    options = options || {};
+	    this.name = Array.prototype.splice.call(arguments, 0, 1);
+	    this.views = options.views || {};
+	    this.models = options.models || {};
+	    this.events = options.events || {};
 	    
-	    this._name = name;
-	    this._views = {};
-	    this._models = {};
-	    this._events = options.events || {};
+	    this.register('models', this.models);
+	    this.register('views', this.views);
+	    this.registerViewEvents(this.events);
 	    
-	    this.register('models', options.models);
-	    
-	    this.register('views', options.views);
-	    this.registerViewEvents(this._events);
-	    
+	    champ.extend(this, options, ['name', 'views', 'models', 'events']);
 	    this.init.apply(this, arguments);
 	    champ.namespace('presenters')[name] = this;
 	};
@@ -285,7 +303,7 @@
 	    init: function() {},
 	    
 	    register: function(name, deps) {
-	        var reg = this['_' + name] = this['_' + name] || {};
+	        var reg = this[name] = this[name] || {};
 	        
 	        if(typeof(deps) === 'string') {
 	            reg[deps] = champ.namespace(name)[deps];
@@ -303,5 +321,11 @@
 	        }
 	    }
 	});
+	
+	champ.presenter.extend = function(options) {
+	    return function(name, opts) {
+	        return champ.presenter(name, champ.extend(options, opts));
+	    };
+	};
 
 }).call(this, jQuery);
