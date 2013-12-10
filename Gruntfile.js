@@ -16,9 +16,11 @@ module.exports = function(grunt) {
 					'src/router.js',
 					'src/view.js',
 					'src/model.js',
-					'src/presenter.js'
+					'src/presenter.js',
+                    'src/templates/*.js'
 				],
-				dest: '<%= pkg.name %>.js',
+				dest:
+                    '<%= pkg.name %>.js'
 			},
 			options: {
 				banner: '/*\n' +
@@ -74,17 +76,25 @@ module.exports = function(grunt) {
 				outfile: 'test/_SpecRunner.html',
 				keepRunner: true
 			}
-		}
+		},
+        copy: {
+            build: {
+                files: [
+                    {expand: true, src: '<%= pkg.name %>.js', dest: 'test-app/app/scripts'}
+                ]
+            }
+        }
 	});
 
 	grunt.loadNpmTasks('grunt-contrib-uglify');
 	grunt.loadNpmTasks('grunt-contrib-concat');
 	grunt.loadNpmTasks('grunt-contrib-watch');
+    grunt.loadNpmTasks('grunt-contrib-copy');
 	grunt.loadNpmTasks('grunt-nodemon');
 	grunt.loadNpmTasks('grunt-concurrent');
 	grunt.loadNpmTasks('grunt-contrib-jasmine');
 
 	grunt.registerTask('test', ['jasmine']);
-	grunt.registerTask('build', ['concat:build', 'uglify:build']);
+	grunt.registerTask('build', ['concat:build', 'uglify:build', 'copy:build']);
 	grunt.registerTask('start', ['concurrent']);
 };

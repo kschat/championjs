@@ -5,10 +5,26 @@
 </head>
 <body>
 
-Test App
+<a href="/">Home</a>
+<a href="/profile">Profile</a>
 
 
-<script src="../../dist/champion.js"></script>
+<div id="home-container">
+
+</div>
+
+<div id="profile-container">
+
+</div>
+
+<script src="/app/scripts/vendor/jquery-2.0.3.min.js" type="text/javascript"></script>
+<script src="/app/scripts/champion.js" type="text/javascript"></script>
+
+<script src="/app/scripts/routes/home/homeView.js" type="text/javascript"></script>
+<script src="/app/scripts/routes/home/homePresenter.js" type="text/javascript"></script>
+
+<script src="/app/scripts/routes/profile/profileView.js" type="text/javascript"></script>
+<script src="/app/scripts/routes/profile/profilePresenter.js" type="text/javascript"></script>
 
 
 <script type="text/javascript">
@@ -17,30 +33,28 @@ Test App
 
         window.onload = function () {
 
-            router.addRoute("/", function(args) {
-               console.log('home');
+            champ.router.addRoute("/", function (e) {
+                routesChanging();
+                homePresenter.open();
             });
 
-            router.addRoute('test', function (args) {
-
-                console.log(args);
-                console.log('test');
-
+            champ.router.addRoute('/profile', function (e) {
+                routesChanging();
+                profilePresenter.open();
             });
 
-            router.addRoute('/test/:person', function (args) {
-
-                  console.log(args)
-                  console.log('test/parameters');
-
-            });
-
-            router.addRoute("/*", function () {
+            champ.router.addRoute("/*", function () {
 
                 console.log('route not found');
 
             });
 
+        };
+
+        // to do -- replace with champ events.
+        var routesChanging = function () {
+            $("#home-container").hide();
+            $("#profile-container").hide();
         };
 
 
