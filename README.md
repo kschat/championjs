@@ -1,7 +1,7 @@
 ChampionJS
 ==========
 
-ChampionJS is an MVP JavaScript framework that uses "dumb " views and event binding to keep your code structured, and easily testable.
+ChampionJS is an MVP JavaScript framework that uses "dumb" views and event binding to keep your code structured, and easily testable.
 
 Installing
 ----------
