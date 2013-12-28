@@ -6,19 +6,38 @@ describe('Class utility', function() {
 	beforeEach(function() {
 		this.baseObj = new champ.Class();
 		this.customObj = new champ.Class('customObj', { customProp: 'custom', customProp2: 'c2' });
+		this.noNameObj = new champ.Class({ p1: 'value' });
 	});
 
 	describe('new Class', function() {
 		it('creates an instance of Class when used with "new"', function() {
 			expect(this.baseObj).to.be.instanceof(champ.Class);
 			expect(this.baseObj).to.have.ownProperty('properties');
+
+			expect(this.customObj).to.be.instanceof(champ.Class);
+			expect(this.customObj).to.have.ownProperty('properties');
+			expect(this.customObj).to.have.ownProperty('id');
+			expect(this.customObj.id).to.equal('customObj');
 		});
 
-		it('Creteas an instance of Class and adds properties', function() {
+		it('Creates an instance of Class and adds properties', function() {
 			expect(this.baseObj).to.be.instanceof(champ.Class);
 			expect(this.customObj).to.have.ownProperty('properties');
 			expect(this.customObj.properties).to.have.ownProperty('customProp');
 			expect(this.customObj.properties.customProp).to.equal('custom');
+		});
+
+		it('Creates a new unique id if one isn\'t given', function() {
+			expect(this.baseObj).to.have.ownProperty('id');
+			expect(this.baseObj.id).to.not.be.null;
+			expect(this.baseObj.id).to.be.a('string');
+			
+			expect(this.noNameObj).to.have.ownProperty('id');
+			expect(this.noNameObj.id).to.not.be.null;
+			expect(this.noNameObj.id).to.be.a('string');
+			expect(this.noNameObj).to.have.ownProperty('properties');
+			expect(this.noNameObj.properties).to.have.ownProperty('p1');
+			expect(this.noNameObj.properties.p1).to.equal('value');
 		});
 	});
 
@@ -148,8 +167,9 @@ describe('Class utility', function() {
 			});
 
 			expect(this.customObj.properties).to.have.ownProperty('p1');
+			expect(this.customObj.properties.p1).to.be.a('string');
 			expect(this.customObj.properties.p1).to.equal('test');
-
+			
 			expect(this.customObj.properties).to.have.ownProperty('p2');
 			expect(this.customObj.properties.p2).to.be.instanceof(Array);
 

@@ -1,5 +1,8 @@
-var Class = champ.Class = function Class(name, options) {
+var Class = champ.Class = function Class(id, options) {
+    if(arguments.length === 1) { return new Class(null, id); }
     Class.init = Class.init || true;
+
+    this.id = id || 'class' + Date.now() || new Date().getTime();
     this.properties = options || {};
     if(Class.init) { this.init(options); }
 };
@@ -41,7 +44,7 @@ Class.extend = function(props) {
         proto = new this();
     Class.init = true;
     
-    var Base = function Class(name, options) { return base.apply(this, arguments); };
+    var Base = function Class(id, options) { return base.apply(this, arguments); };
     
     Base.prototype = champ.extend(proto, props);
     Base.constructor = Class;
