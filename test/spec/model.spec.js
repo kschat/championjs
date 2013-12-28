@@ -11,6 +11,12 @@ describe('model module', function() {
 				testProp: 'test'
 			}
 		});
+
+		this.extendedModel = champ.model.extend({
+			testMethod: function() {
+
+			}
+		});
 	});
 
 	afterEach(function() {
@@ -41,25 +47,6 @@ describe('model module', function() {
 
 	it('Creates a new instance of a model and sets the _properties property', function() {
 		expect(this.model.properties.testProp).to.equal('test');
-	});
-
-	it('Extends the model module and creates an instance of the new module', function() {
-		var customMethod = function() {};
-
-		var MyModel = champ.model.extend({
-			init: function(options) {
-				this.property('myValue', options.myValue);
-			},
-
-			customMethod: customMethod
-		});
-
-		var myModel = MyModel('myModel', {
-			myValue: 'test value'
-		});
-
-		expect(myModel.property('myValue')).to.equal('test value');
-		expect(myModel.customMethod).to.equal(customMethod);
 	});
 
 	describe('property()', function() {

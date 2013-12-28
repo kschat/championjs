@@ -11,7 +11,9 @@ module.exports = function(grunt) {
 			build: {
 				src: [
 					'src/champion.js',
-					'src/util/*.js',
+					'src/util/extend.js',
+					'src/util/class.js',
+					'src/util/namespace.js',
 					'src/event.js',
 					'src/router.js',
 					'src/view.js',

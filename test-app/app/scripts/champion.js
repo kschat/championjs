@@ -45,18 +45,69 @@
 	    return obj;
 	};
 
+	// Source: src/util/class.js
+	var Class = champ.Class = function Class(name, options) {
+	    Class.init = Class.init || true;
+	    this.properties = options || {};
+	    if(Class.init) { this.init(options); }
+	};
+	
+	Class.prototype = champ.extend(Class.prototype, {
+	    init: function(options) {},
+	
+	    get: function(prop) {
+	        if(typeof prop !== 'string') {
+	            var obj = {};
+	            for(var i=0; i<prop.length; i++) {
+	                obj[prop[i]] = this.get(prop[i]);
+	            }
+	
+	            return obj;
+	        }
+	
+	        if(!prop in this.properties) { throw 'Property does not exist'; }
+	        return this.properties[prop];
+	    },
+	
+	    set: function(prop, val) {
+	        if(typeof prop !== 'string') {
+	            for(var key in prop) { 
+	                if(!prop.hasOwnProperty(key)) { continue; }
+	                this.set(key, prop[key]);
+	            }
+	            return;
+	        }
+	
+	        if(prop.indexOf('.') === -1) { return this.properties[prop] = val; }
+	        return champ.namespace.call(this.properties, prop, val);
+	    }
+	});
+	
+	Class.extend = function(props) {
+	    Class.init = false;
+	    var base = this,
+	        proto = new this();
+	    Class.init = true;
+	    
+	    var Base = function Class(name, options) { return base.apply(this, arguments); };
+	    
+	    Base.prototype = champ.extend(proto, props);
+	    Base.constructor = Class;
+	    Base.extend = Class.extend;
+	    
+	    return Base;
+	};
+
 	// Source: src/util/namespace.js
-	champ.namespace = function namespace(names) {
-	    if(typeof(names) === 'string') { return namespace.call(this, names.split('.')); }
+	champ.namespace = function namespace(names, val) {
+	    if(typeof(names) === 'string') { return namespace.call(this, names.split('.'), val); }
 	    
 	    var name = names.splice(0, 1);
 	    this[name] = this[name] || {};
 	    
-	    if(names.length !== 0) {
-	        namespace.call(this[name], names);
-	    }
-	    
-	    return this[name];
+	    if(names.length === 0) { return this[name] = val || this[name]; }
+	
+	    return namespace.call(this[name], names, val);
 	};
 
 	// Source: src/event.js
@@ -353,7 +404,9 @@
 	    if(!(this instanceof model)) { return new model(name, options); }
 	    
 	    options = options || {};
-	    this.name = Array.prototype.splice.call(arguments, 0, 1)[0];
+	    this.name = Array.prototype.splice.call(arguments, 0, 1)[0] 
+	        || 'model' + ((Date.now ? Date.now() : new Date().getTime()) / 1000);
+	
 	    this.properties = options.properties || {};
 	    
 	    champ.extend(this, options, ['name', 'properties']);
@@ -389,10 +442,16 @@
 	    }
 	});
 	
-	champ.model.extend = function(options) {
-	    return function(name, opts) {
-	        return champ.model(name, champ.extend(options, opts));
-	    };
+	champ.model.extend = function extend(options) {
+	    function model(name, opts) {
+	        return champ.model(name, opts);
+	    }
+	
+	    model.extend = extend;
+	    model.prototype = champ.extend(model.prototype, options);
+	    model.prototype.constructor = this;
+	
+	    return model;
 	};
 
 	// Source: src/presenter.js

@@ -2,7 +2,9 @@ var model = champ.model = function(name, options) {
     if(!(this instanceof model)) { return new model(name, options); }
     
     options = options || {};
-    this.name = Array.prototype.splice.call(arguments, 0, 1)[0];
+    this.name = Array.prototype.splice.call(arguments, 0, 1)[0] 
+        || 'model' + ((Date.now ? Date.now() : new Date().getTime()) / 1000);
+
     this.properties = options.properties || {};
     
     champ.extend(this, options, ['name', 'properties']);
@@ -38,8 +40,14 @@ champ.extend(model.prototype, {
     }
 });
 
-champ.model.extend = function(options) {
-    return function(name, opts) {
-        return champ.model(name, champ.extend(options, opts));
-    };
+champ.model.extend = function extend(options) {
+    function model(name, opts) {
+        return champ.model(name, opts);
+    }
+
+    model.extend = extend;
+    model.prototype = champ.extend(model.prototype, options);
+    model.prototype.constructor = this;
+
+    return model;
 };
