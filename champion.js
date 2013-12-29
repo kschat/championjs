@@ -53,6 +53,7 @@
 	    this.id = id || 'class' + Date.now() || new Date().getTime();
 	    this.properties = options || {};
 	    if(Class.init) { this.init(options); }
+	    champ.namespace(this.type ? this.type.toLowerCase() + 's' : 'classes')[id] = this;
 	};
 	
 	Class.prototype = champ.extend(Class.prototype, {
@@ -403,22 +404,8 @@
 	};
 
 	// Source: src/model.js
-	var model = champ.model = function(name, options) {
-	    if(!(this instanceof model)) { return new model(name, options); }
-	    
-	    options = options || {};
-	    this.name = Array.prototype.splice.call(arguments, 0, 1)[0] 
-	        || 'model' + ((Date.now ? Date.now() : new Date().getTime()) / 1000);
-	
-	    this.properties = options.properties || {};
-	    
-	    champ.extend(this, options, ['name', 'properties']);
-	    this.init.apply(this, arguments);
-	    champ.namespace('models')[name] = this;
-	};
-	
-	champ.extend(model.prototype, {
-	    init: function(options) {},
+	var model = champ.model = champ.Class.extend({
+	    type: 'Model',
 	
 	    property: function property(prop, val, silent) {
 	        //If property isn't a string, assume it's an object literal
@@ -437,25 +424,13 @@
 	        this.properties[prop] = val;
 	        
 	        if(!silent) {
-	            events.trigger('model:' + this.name + ':' + 'changed', {
+	            events.trigger('model:' + this.id + ':' + 'changed', {
 	                property: prop,
 	                value: val
 	            });
 	        }
 	    }
 	});
-	
-	champ.model.extend = function extend(options) {
-	    function model(name, opts) {
-	        return champ.model(name, opts);
-	    }
-	
-	    model.extend = extend;
-	    model.prototype = champ.extend(model.prototype, options);
-	    model.prototype.constructor = this;
-	
-	    return model;
-	};
 
 	// Source: src/presenter.js
 	var presenter = champ.presenter = function(name, options) {

@@ -18,6 +18,8 @@ describe('Class utility', function() {
 			expect(this.customObj).to.have.ownProperty('properties');
 			expect(this.customObj).to.have.ownProperty('id');
 			expect(this.customObj.id).to.equal('customObj');
+			expect(champ.classes).to.exist;
+			expect(champ.classes).to.have.ownProperty('customObj');
 		});
 
 		it('Creates an instance of Class and adds properties', function() {
@@ -169,7 +171,7 @@ describe('Class utility', function() {
 			expect(this.customObj.properties).to.have.ownProperty('p1');
 			expect(this.customObj.properties.p1).to.be.a('string');
 			expect(this.customObj.properties.p1).to.equal('test');
-			
+
 			expect(this.customObj.properties).to.have.ownProperty('p2');
 			expect(this.customObj.properties.p2).to.be.instanceof(Array);
 

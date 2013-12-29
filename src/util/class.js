@@ -5,6 +5,7 @@ var Class = champ.Class = function Class(id, options) {
     this.id = id || 'class' + Date.now() || new Date().getTime();
     this.properties = options || {};
     if(Class.init) { this.init(options); }
+    champ.namespace(this.type ? this.type.toLowerCase() + 's' : 'classes')[id] = this;
 };
 
 Class.prototype = champ.extend(Class.prototype, {

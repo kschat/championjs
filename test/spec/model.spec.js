@@ -6,16 +6,8 @@ describe('model module', function() {
 	beforeEach(function() {
 		this.triggerSpy = sinon.spy(champ.events, 'trigger');
 
-		this.model = champ.model('testModel', {
-			properties: {
-				testProp: 'test'
-			}
-		});
-
-		this.extendedModel = champ.model.extend({
-			testMethod: function() {
-
-			}
+		this.model = new champ.model('testModel', {
+			testProp: 'test'
 		});
 	});
 
@@ -24,32 +16,21 @@ describe('model module', function() {
 	});
 
 	it('Creates a new instance of an empty model', function() {
-		var newModel = champ.model('newModel');
-		expect(newModel instanceof champ.model, 'Was not instance of Model').to.be.true;
+		var newModel = new champ.model('newModel', {});
+		
+		expect(newModel).to.be.instanceof(champ.Class);
 		expect(champ.models.newModel).to.exist;
-		expect(newModel.name).to.equal('newModel');
+		expect(newModel.id).to.equal('newModel');
 
 		newModel.property('testProp', 'new value');
 		expect(newModel.property('testProp')).to.equal('new value');
 	});
 
-	it('Creates a new instance of a model without using the "new" keyword', function() {
-		expect(this.model instanceof champ.model, 'Was not instance of Model').to.be.true;
-		expect(champ.models.testModel).to.exist;
-		expect(this.model.name).to.equal('testModel');
-	});
-
-	it('Creates a new instance of a model when using the "new" keyword', function() {
-		expect(new champ.model('noNewTest', {}) instanceof champ.model, 'Was not instance of Model').to.be.true;
-		expect(champ.models.noNewTest).to.exist;
-		expect(champ.models.noNewTest.name).to.equal('noNewTest');
-	});
-
-	it('Creates a new instance of a model and sets the _properties property', function() {
+	it('Creates a new instance of a model and sets the properties property', function() {
 		expect(this.model.properties.testProp).to.equal('test');
 	});
 
-	describe('property()', function() {
+	describe('property(prop, val, silent)', function() {
 		it('Returns the property when only the property name is given', function() {
 			expect(this.model.property('testProp')).to.equal('test');
 		});
