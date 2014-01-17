@@ -15,19 +15,19 @@ describe('model module', function() {
 		this.triggerSpy.restore();
 	});
 
-	it('Creates a new instance of an empty model', function() {
-		var newModel = new champ.model('newModel', {});
-		
-		expect(newModel).to.be.instanceof(champ.Class);
-		expect(champ.models.newModel).to.exist;
-		expect(newModel.id).to.equal('newModel');
+	describe('new model(id, options)', function() {
+		it('Creates a new instance of a model', function() {
+			expect(this.model).to.be.instanceof(champ.Class);
+			expect(champ.models.testModel).to.exist;
+			expect(this.model.id).to.equal('testModel');
 
-		newModel.property('testProp', 'new value');
-		expect(newModel.property('testProp')).to.equal('new value');
-	});
+			this.model.property('testProp', 'new value');
+			expect(this.model.property('testProp')).to.equal('new value');
+		});
 
-	it('Creates a new instance of a model and sets the properties property', function() {
-		expect(this.model.properties.testProp).to.equal('test');
+		it('Creates a new instance of a model and sets the properties property', function() {
+			expect(this.model.properties.testProp).to.equal('test');
+		});
 	});
 
 	describe('property(prop, val, silent)', function() {

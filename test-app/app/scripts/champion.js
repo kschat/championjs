@@ -52,11 +52,18 @@
 	
 	    this.id = id || 'class' + Date.now() || new Date().getTime();
 	    this.properties = options || {};
-	    if(Class.init) { this.init(options); }
+	
+	    if(Class.init) { 
+	        this.__construct(options);
+	        this.init(options);
+	    }
+	
 	    champ.namespace(this.type ? this.type.toLowerCase() + 's' : 'classes')[id] = this;
 	};
 	
 	Class.prototype = champ.extend(Class.prototype, {
+	    __construct: function() {},
+	
 	    init: function(options) {},
 	
 	    get: function(prop) {
@@ -348,60 +355,43 @@
 	
 
 	// Source: src/view.js
-	var view = champ.view = function (name, options) {
-	    if(!(this instanceof view)) { return new view(name, options); }
-	    
-	    options = options || {};
-	    this.name = Array.prototype.splice.call(arguments, 0, 1);
-	    this.container = typeof(options.container === 'string') 
-	        ? $(options.container) 
-	        : options.container || $('<div>');
+	var view = champ.view = champ.Class.extend({
+	    type: 'View',
 	
-	    this.DOM = options.DOM || {};
-	    
-	    this.registerDom(this.DOM);
-	    this.registerDomEvents();
+	    __construct: function(options) {
+	        this.container = typeof options.container === 'string'
+	            ? $(options.container) 
+	            : options.container || $('<div>');
 	
-	    champ.extend(this, options, ['name', 'container', 'DOM']);    
-	    this.init.apply(this, arguments);
-	    champ.namespace('views')[name] = this;
-	};
-	
-	champ.extend(view.prototype, {
-	    init: function() {},
+	        this.$ = champ.extend(this.$ || {}, options.$ || {});
 	    
-	    addDom: function(name, element) {
-	        element = this.container.find(element);
-	        if(element.length > 0) {
-	            this.DOM[name] = element;
+	        for(var key in this.$) {
+	            var events = this.$[key].split(/\s*:\s*/),
+	                selector = events.splice(0, 1)[0];
+	
+	            this.add(key, selector, events);
 	        }
 	    },
+	
+	    init: function(options) {},
 	    
-	    registerDom: function(dom) {
-	        for(var name in dom) {
-	            this.addDom(name, dom[name]);
-	        }
-	    },
-	    
-	    //Intercepts all events fired on the DOM objects in the view and fires custom events for presenters
-	    registerDomEvents: function() {
-	        for(var name in this.DOM) {
-	            var el = this.DOM[name];
-	            
-	            el.on(DOMEvents.join(' '), (function(view, name) {
-	                return function(e) {
-	                    events.trigger('view:' + view.name + ':' + name + ' ' + e.type, e);
-	                };
-	            })(this, name));
-	        }
+	    add: function(name, selector, events) {
+	        var $el = this.container.find(selector);
+	        if($el.length === 0) { return; }
+	
+	        this.$[name] = $el;
+	
+	        events = typeof events === 'string'
+	            ? (events.trim() === '*' ? DOMEvents.join(' ') : events)
+	            : (events || []).join(' ');
+	
+	        $el.on(events, (function(view, name) {
+	            return function(e) {
+	                champ.events.trigger('view:' + view.id + ':' + name + ' ' + e.type, e);
+	            };
+	        })(this, name));
 	    }
 	});
-	
-	champ.view.extend = function(options) {
-	    return function(name, opts) {
-	        return champ.view(name, champ.extend(options, opts));
-	    };
-	};
 
 	// Source: src/model.js
 	var model = champ.model = champ.Class.extend({

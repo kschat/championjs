@@ -72,8 +72,12 @@ module.exports = function(grunt) {
 				vendor: [
 					'test/vendor/sinon/sinon.js', 
 					'test/vendor/chai/chai.js', 
-					'test/vendor/sinon-chai/sinon-chai.js',
 					'test/vendor/jquery/jquery.js'
+				],
+				helpers: [
+					'test/helpers/sinon-chai/sinon-chai.js',
+					'test/helpers/jasmine-jquery/jasmine-jquery.js',
+					'test/helpers/chai-jquery/chai-jquery.js'
 				],
 				outfile: 'test/_SpecRunner.html',
 				keepRunner: true
