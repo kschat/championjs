@@ -25,6 +25,7 @@ describe('view module', function() {
 	describe('new view(id, options)', function() {
 		it('Creates a new instance of a view', function() {
 			expect(this.view).to.be.instanceof(champ.Class);
+			expect(this.view).to.be.instanceof(champ.view);
 			expect(champ.views.testView).to.exist;
 			expect(this.view.id).to.equal('testView');
 		});

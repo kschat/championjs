@@ -1,6 +1,6 @@
 var Class = champ.Class = function Class(id, options) {
-    if(arguments.length === 1) { return new Class(null, id); }
-    Class.init = Class.init || true;
+    if(typeof id === 'object') { return new Class(undefined, id); }
+    Class.init = typeof Class.init === 'boolean' ? Class.init : true;
 
     this.id = id || 'class' + Date.now() || new Date().getTime();
     this.properties = options || {};
@@ -14,7 +14,7 @@ var Class = champ.Class = function Class(id, options) {
 };
 
 Class.prototype = champ.extend(Class.prototype, {
-    __construct: function() {},
+    __construct: function(options) {},
 
     init: function(options) {},
 

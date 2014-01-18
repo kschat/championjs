@@ -1,46 +1,26 @@
-var presenter = champ.presenter = function(name, options) {
-    if(!(this instanceof presenter)) { return new presenter(name, options); }
-    
-    options = options || {};
-    this.name = Array.prototype.splice.call(arguments, 0, 1);
-    this.views = options.views || {};
-    this.models = options.models || {};
-    this.events = options.events || {};
-    
-    this.register('models', this.models);
-    this.register('views', this.views);
-    this.registerViewEvents(this.events);
-    
-    champ.extend(this, options, ['name', 'views', 'models', 'events']);
-    this.init.apply(this, arguments);
-    champ.namespace('presenters')[name] = this;
-};
+var presenter = champ.presenter = champ.Class.extend({
+    type: 'Presenter',
 
-champ.extend(presenter.prototype, {
-    init: function() {},
+    models: [],
     
-    register: function(name, deps) {
-        var reg = this[name] = this[name] || {};
-        
-        if(typeof(deps) === 'string') {
-            reg[deps] = champ.namespace(name)[deps];
-            return;
-        }
-        
-        for(var i=0; i<deps.length; i++) {
-            reg[deps[i]] = champ.namespace(name)[deps[i]];
-        }
-    },
-    
-    registerViewEvents: function(evts) {
-        for(var name in evts) {
-            events.on(name, this[evts[name]].bind(this));
+    views: [],
+
+    events: {},
+
+    __construct: function(options) {
+        this.view = this.views.length > 0 ? this.views[0] : null;
+        this.model = this.models.length > 0 ? this.models[0] : null;
+
+        for(var e in this.events) {
+            var evts = e.split(/\s+/),
+                bus = evts.splice(0, 1);
+
+            evts = evts.length === 0 ? [' '] : evts;
+
+            for(var key in evts) { 
+                var eStr = bus + (evts[key] === ' ' ? '' : ' ' + evts[key]);
+                champ.events.on(eStr, this[this.events[e]].bind(this));
+            }
         }
     }
 });
-
-champ.presenter.extend = function(options) {
-    return function(name, opts) {
-        return champ.presenter(name, champ.extend(options, opts));
-    };
-};
