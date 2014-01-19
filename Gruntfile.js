@@ -14,6 +14,7 @@ module.exports = function(grunt) {
 					'src/util/extend.js',
 					'src/util/class.js',
 					'src/util/namespace.js',
+					'src/util/ioc.js',
 					'src/event.js',
 					'src/router.js',
 					'src/view.js',
