@@ -1,6 +1,4 @@
-var model = champ.model = champ.Class.extend({
-    type: 'Model',
-
+var model = champ.model = champ.Class.extend('Model', {
     property: function property(prop, val, silent) {
         //If property isn't a string, assume it's an object literal
         //and call property on each key value pair

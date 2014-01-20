@@ -9,7 +9,8 @@ describe('view module', function() {
 		loadFixtures('view.fixture.html');
 		this.eventsSpy = sinon.spy(champ.events, 'trigger');
 
-		this.view = new champ.view('testView', {
+		this.view = new champ.view({
+			id: 'testView',
 			container: '#view-container',
 			$: {
 				testLink1: '#test-link1',
@@ -26,7 +27,6 @@ describe('view module', function() {
 		it('Creates a new instance of a view', function() {
 			expect(this.view).to.be.instanceof(champ.Class);
 			expect(this.view).to.be.instanceof(champ.view);
-			expect(champ.views.testView).to.exist;
 			expect(this.view.id).to.equal('testView');
 		});
 

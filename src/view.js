@@ -1,6 +1,4 @@
-var view = champ.view = champ.Class.extend({
-    type: 'View',
-
+var view = champ.view = champ.Class.extend('View', {
     __construct: function(options) {
         this.container = typeof options.container === 'string'
             ? $(options.container) 
@@ -15,8 +13,6 @@ var view = champ.view = champ.Class.extend({
             this.add(key, selector, events);
         }
     },
-
-    init: function(options) {},
     
     add: function(name, selector, events) {
         var $el = this.container.find(selector);

@@ -46,19 +46,21 @@
 	};
 
 	// Source: src/util/class.js
-	var Class = champ.Class = function Class(id, options) {
-	    if(typeof id === 'object') { return new Class(undefined, id); }
+	var Class = champ.Class = function Class(options) {
 	    Class.init = typeof Class.init === 'boolean' ? Class.init : true;
+	    options = options || {};
 	
-	    this.id = id || 'class' + Date.now() || new Date().getTime();
-	    this.properties = options || {};
+	    this.id = options.id || (Date.now ? Date.now() : new Date().getTime());
+	    this.properties = options;
+	
+	    for(var i in this.inject) {
+	        options[this.inject[i]] = champ.ioc.resolve(this.inject[i]);
+	    }
 	
 	    if(Class.init) { 
 	        this.__construct(options);
 	        this.init(options);
 	    }
-	
-	    champ.namespace(this.type ? this.type.toLowerCase() + 's' : 'classes')[id] = this;
 	};
 	
 	Class.prototype = champ.extend(Class.prototype, {
@@ -76,7 +78,7 @@
 	            return obj;
 	        }
 	
-	        if(!prop in this.properties) { throw 'Property does not exist'; }
+	        if(!prop in this.properties) { throw Error('"' + prop  + '" does not exist'); }
 	        return this.properties[prop];
 	    },
 	
@@ -94,18 +96,20 @@
 	    }
 	});
 	
-	Class.extend = function(props) {
+	Class.extend = function(name, props) {
+	    if(arguments.length < 2) { throw Error('Must specify a name for extended classes'); }
 	    Class.init = false;
 	    var base = this,
 	        proto = new this();
 	    Class.init = true;
 	    
-	    var Base = function Class(id, options) { return base.apply(this, arguments); };
+	    var Base = function Class(options) { return base.apply(this, arguments); };
 	    
 	    Base.prototype = champ.extend(proto, props);
 	    Base.constructor = Class;
 	    Base.extend = Class.extend;
-	    
+	    champ.ioc.register(name, Base);
+	
 	    return Base;
 	};
 
@@ -124,17 +128,27 @@
 	// Source: src/util/ioc.js
 	var ioc = champ.ioc = (function() {
 		var _cache = {},
-			_argMatcher = /^function\s*\((.*)\)/m,
+			_argMatcher = /^function[\s\w]*\((.*)\)/m,
 			_argSplitter = /\s*,\s*/,
 			_resolveInstance = function(arg) { return typeof arg === 'function' ? new arg : arg; };
 	
 		return {
-			register: function(key, dependency) {
+			register: function(key, dependency, override) {
+				if(!override && _cache[key]) { throw Error('Dependency already registered'); }
 				_cache[key] = _cache[key] || typeof dependency === 'function'
 					? this.inject(dependency)
 					: dependency;
 	
 				return this;
+			},
+	
+			unregister: function(keys) {
+				keys = typeof keys === 'string' ? [keys] : keys;
+				for(var i=0; i<keys.length; i++) { delete _cache[keys[i]]; }
+			},
+	
+			isRegistered: function(key) {
+				return !!_cache[key];
 			},
 	
 			inject: function(func) {
@@ -147,7 +161,12 @@
 			},
 	
 			resolve: function(key) {
-				if(!_cache[key]) { throw 'Object was never registered'; }
+				if(typeof key !== 'string') {
+					var objs = [];
+					for(var k in key) { objs.push(this.resolve(key[k])); }
+					return objs;
+				}
+				if(!_cache[key]) { throw Error('"' + key + '" was never registered'); }
 				return _resolveInstance(_cache[key]);
 			},
 	
@@ -409,9 +428,7 @@
 	
 
 	// Source: src/view.js
-	var view = champ.view = champ.Class.extend({
-	    type: 'View',
-	
+	var view = champ.view = champ.Class.extend('View', {
 	    __construct: function(options) {
 	        this.container = typeof options.container === 'string'
 	            ? $(options.container) 
@@ -426,8 +443,6 @@
 	            this.add(key, selector, events);
 	        }
 	    },
-	
-	    init: function(options) {},
 	    
 	    add: function(name, selector, events) {
 	        var $el = this.container.find(selector);
@@ -448,9 +463,7 @@
 	});
 
 	// Source: src/model.js
-	var model = champ.model = champ.Class.extend({
-	    type: 'Model',
-	
+	var model = champ.model = champ.Class.extend('Model', {
 	    property: function property(prop, val, silent) {
 	        //If property isn't a string, assume it's an object literal
 	        //and call property on each key value pair
@@ -477,9 +490,7 @@
 	});
 
 	// Source: src/presenter.js
-	var presenter = champ.presenter = champ.Class.extend({
-	    type: 'Presenter',
-	
+	var presenter = champ.presenter = champ.Class.extend('Presenter', {
 	    models: [],
 	    
 	    views: [],
@@ -487,6 +498,9 @@
 	    events: {},
 	
 	    __construct: function(options) {
+	        this.views = champ.ioc.resolve(this.views);
+	        this.models = champ.ioc.resolve(this.models);
+	
 	        this.view = this.views.length > 0 ? this.views[0] : null;
 	        this.model = this.models.length > 0 ? this.models[0] : null;
 	

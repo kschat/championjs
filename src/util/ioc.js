@@ -1,16 +1,26 @@
 var ioc = champ.ioc = (function() {
 	var _cache = {},
-		_argMatcher = /^function\s*\((.*)\)/m,
+		_argMatcher = /^function[\s\w]*\((.*)\)/m,
 		_argSplitter = /\s*,\s*/,
 		_resolveInstance = function(arg) { return typeof arg === 'function' ? new arg : arg; };
 
 	return {
-		register: function(key, dependency) {
+		register: function(key, dependency, override) {
+			if(!override && _cache[key]) { throw Error('Dependency already registered'); }
 			_cache[key] = _cache[key] || typeof dependency === 'function'
 				? this.inject(dependency)
 				: dependency;
 
 			return this;
+		},
+
+		unregister: function(keys) {
+			keys = typeof keys === 'string' ? [keys] : keys;
+			for(var i=0; i<keys.length; i++) { delete _cache[keys[i]]; }
+		},
+
+		isRegistered: function(key) {
+			return !!_cache[key];
 		},
 
 		inject: function(func) {
@@ -23,7 +33,12 @@ var ioc = champ.ioc = (function() {
 		},
 
 		resolve: function(key) {
-			if(!_cache[key]) { throw 'Object was never registered'; }
+			if(typeof key !== 'string') {
+				var objs = [];
+				for(var k in key) { objs.push(this.resolve(key[k])); }
+				return objs;
+			}
+			if(!_cache[key]) { throw Error('"' + key + '" was never registered'); }
 			return _resolveInstance(_cache[key]);
 		},
 

@@ -6,7 +6,8 @@ describe('model module', function() {
 	beforeEach(function() {
 		this.triggerSpy = sinon.spy(champ.events, 'trigger');
 
-		this.model = new champ.model('testModel', {
+		this.model = new champ.model({
+			id: 'testModel',
 			testProp: 'test'
 		});
 	});
@@ -18,7 +19,6 @@ describe('model module', function() {
 	describe('new model(id, options)', function() {
 		it('Creates a new instance of a model', function() {
 			expect(this.model).to.be.instanceof(champ.Class);
-			expect(champ.models.testModel).to.exist;
 			expect(this.model.id).to.equal('testModel');
 
 			this.model.property('testProp', 'new value');

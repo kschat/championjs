@@ -1,16 +1,18 @@
-var Class = champ.Class = function Class(id, options) {
-    if(typeof id === 'object') { return new Class(undefined, id); }
+var Class = champ.Class = function Class(options) {
     Class.init = typeof Class.init === 'boolean' ? Class.init : true;
+    options = options || {};
 
-    this.id = id || 'class' + Date.now() || new Date().getTime();
-    this.properties = options || {};
+    this.id = options.id || (Date.now ? Date.now() : new Date().getTime());
+    this.properties = options;
+
+    for(var i in this.inject) {
+        options[this.inject[i]] = champ.ioc.resolve(this.inject[i]);
+    }
 
     if(Class.init) { 
         this.__construct(options);
         this.init(options);
     }
-
-    champ.namespace(this.type ? this.type.toLowerCase() + 's' : 'classes')[id] = this;
 };
 
 Class.prototype = champ.extend(Class.prototype, {
@@ -28,7 +30,7 @@ Class.prototype = champ.extend(Class.prototype, {
             return obj;
         }
 
-        if(!prop in this.properties) { throw 'Property does not exist'; }
+        if(!prop in this.properties) { throw Error('"' + prop  + '" does not exist'); }
         return this.properties[prop];
     },
 
@@ -46,17 +48,19 @@ Class.prototype = champ.extend(Class.prototype, {
     }
 });
 
-Class.extend = function(props) {
+Class.extend = function(name, props) {
+    if(arguments.length < 2) { throw Error('Must specify a name for extended classes'); }
     Class.init = false;
     var base = this,
         proto = new this();
     Class.init = true;
     
-    var Base = function Class(id, options) { return base.apply(this, arguments); };
+    var Base = function Class(options) { return base.apply(this, arguments); };
     
     Base.prototype = champ.extend(proto, props);
     Base.constructor = Class;
     Base.extend = Class.extend;
-    
+    champ.ioc.register(name, Base);
+
     return Base;
 };

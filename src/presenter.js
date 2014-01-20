@@ -1,6 +1,4 @@
-var presenter = champ.presenter = champ.Class.extend({
-    type: 'Presenter',
-
+var presenter = champ.presenter = champ.Class.extend('Presenter', {
     models: [],
     
     views: [],
@@ -8,6 +6,9 @@ var presenter = champ.presenter = champ.Class.extend({
     events: {},
 
     __construct: function(options) {
+        this.views = champ.ioc.resolve(this.views);
+        this.models = champ.ioc.resolve(this.models);
+
         this.view = this.views.length > 0 ? this.views[0] : null;
         this.model = this.models.length > 0 ? this.models[0] : null;
 

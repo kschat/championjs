@@ -5,7 +5,7 @@ var expect = chai.expect;
 describe('Class utility', function() {
 	beforeEach(function() {
 		this.baseObj = new champ.Class();
-		this.customObj = new champ.Class('customObj', { customProp: 'custom', customProp2: 'c2' });
+		this.customObj = new champ.Class({ id: 'customObj', customProp: 'custom', customProp2: 'c2' });
 		this.noNameObj = new champ.Class({ p1: 'value' });
 	});
 
@@ -18,8 +18,6 @@ describe('Class utility', function() {
 			expect(this.customObj).to.have.ownProperty('properties');
 			expect(this.customObj).to.have.ownProperty('id');
 			expect(this.customObj.id).to.equal('customObj');
-			expect(champ.classes).to.exist;
-			expect(champ.classes).to.have.ownProperty('customObj');
 		});
 
 		it('Creates an instance of Class and adds properties', function() {
@@ -32,11 +30,9 @@ describe('Class utility', function() {
 		it('Creates a new unique id if one isn\'t given', function() {
 			expect(this.baseObj).to.have.ownProperty('id');
 			expect(this.baseObj.id).to.not.be.null;
-			expect(this.baseObj.id).to.be.a('string');
 			
 			expect(this.noNameObj).to.have.ownProperty('id');
 			expect(this.noNameObj.id).to.not.be.null;
-			expect(this.noNameObj.id).to.be.a('string');
 			expect(this.noNameObj).to.have.ownProperty('properties');
 			expect(this.noNameObj.properties).to.have.ownProperty('p1');
 			expect(this.noNameObj.properties.p1).to.equal('value');
@@ -45,8 +41,8 @@ describe('Class utility', function() {
 
 	describe('Class.extend(props)', function() {
 		beforeEach(function() {
-			this.ExtendedClass = champ.Class.extend({
-				__construct: function() {},
+			this.ExtendedClass = champ.Class.extend('ExtendedClass', {
+				__construct: function(options) {},
 
 				init: function(options) {
 					options = options || {};
@@ -58,12 +54,18 @@ describe('Class utility', function() {
 				m1: function() {}
 			});
 
-			this.AnotherExtendedClass = this.ExtendedClass.extend({
-				__construct: function() {},
+			this.AnotherExtendedClass = this.ExtendedClass.extend('AnotherExtendedClass', {
+				inject: ['ExtendedClass'],
+
+				__construct: function(options) {},
 				
 				init: function(options) {},
 
 				m2: function() {}
+			});
+
+			this.ThrowsErrorClass = champ.Class.extend('ThrowsErrorClass', {
+				inject: ['DoesntExist']
 			});
 
 			this.constructSpy = sinon.spy(this.ExtendedClass.prototype, '__construct');
@@ -71,7 +73,7 @@ describe('Class utility', function() {
 			this.anotherInitSpy = sinon.spy(this.AnotherExtendedClass.prototype, 'init');
 
 			this.extendedClass1 = new this.ExtendedClass();
-			this.extendedClass2 = new this.ExtendedClass('', {
+			this.extendedClass2 = new this.ExtendedClass({
 				p1: 'not default'
 			});
 
@@ -81,6 +83,7 @@ describe('Class utility', function() {
 		afterEach(function() {
 			this.initSpy.restore();
 			this.anotherInitSpy.restore();
+			champ.ioc.unregister(['ExtendedClass', 'AnotherExtendedClass', 'ThrowsErrorClass']);
 		});
 
 		it('creates an instance of ExtendedClass when used with "new" that is also an instance of Class', function() {
@@ -89,8 +92,8 @@ describe('Class utility', function() {
 		});
 
 		it('calls init when an instance of ExtendedClass is used with "new"', function() {
-			expect(this.initSpy).to.be.calledTwice;
-			expect(this.constructSpy).to.be.calledTwice;
+			expect(this.initSpy).to.be.calledThrice; //thrice instead of twice because of the injected "ExtendedClass"
+			expect(this.constructSpy).to.be.calledThrice;
 			
 			expect(this.extendedClass1).to.have.ownProperty('p1');
 			expect(this.extendedClass1.p1).to.equal('default');
@@ -117,9 +120,9 @@ describe('Class utility', function() {
 		});
 
 		it('creates a new "class" when extend is called on ExtendedClass', function() {
-			expect(this.anotherExtendedClass instanceof this.AnotherExtendedClass);
-			expect(this.anotherExtendedClass instanceof this.ExtendedClass);
-			expect(this.anotherExtendedClass instanceof champ.Class);
+			expect(this.anotherExtendedClass).to.be.an.instanceof(this.AnotherExtendedClass);
+			expect(this.anotherExtendedClass).to.be.an.instanceof(this.ExtendedClass);
+			expect(this.anotherExtendedClass).to.be.an.instanceof(champ.Class);
 		});
 
 		it('inherits all methods and properties from base class and overwrites them if specified', function() {
@@ -134,6 +137,14 @@ describe('Class utility', function() {
 			expect(this.anotherExtendedClass).to.have.deep.property('m1');
 			expect(this.anotherExtendedClass).to.have.deep.property('m2');
 		});
+
+		it('It injects all elements in the injects array into the options variable', function() {
+			expect(this.anotherInitSpy.getCall(0).args[0].ExtendedClass).to.be.an.instanceof(this.ExtendedClass);
+		});
+
+		it('Throws an error when trying to inject a dependency that isn\'t registered', function() {
+			expect(function() { champ.ioc.resolve('ThrowsErrorClass'); }).to.throw;
+		});
 	});
 
 	describe('get(prop)', function() {
@@ -144,7 +155,7 @@ describe('Class utility', function() {
 		it('returns a new object with all the properties and their values when passed an array', function() {
 			var results = this.customObj.get(['customProp', 'customProp2']);
 
-			expect(results).to.be.instanceof(Object);
+			expect(results).to.be.an.instanceof(Object);
 			expect(results).to.have.ownProperty('customProp');
 			expect(results).to.have.ownProperty('customProp2');
 			expect(results.customProp).to.equal('custom');
