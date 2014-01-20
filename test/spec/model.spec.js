@@ -6,14 +6,20 @@ describe('model module', function() {
 	beforeEach(function() {
 		this.triggerSpy = sinon.spy(champ.events, 'trigger');
 
-		this.model = new champ.model({
+		this.TestModel = champ.model.extend('TestModel', {
 			id: 'testModel',
-			testProp: 'test'
+
+			properties: {
+				testProp: 'test'
+			}
 		});
+
+		this.model = new this.TestModel();
 	});
 
 	afterEach(function() {
 		this.triggerSpy.restore();
+		champ.ioc.reset();
 	});
 
 	describe('new model(id, options)', function() {
@@ -100,6 +106,21 @@ describe('model module', function() {
 			this.model.property({ 'newProp': 'changed again' }, true);
 			expect(this.model.property('newProp')).to.equal('changed again');
 			expect(this.triggerSpy).to.not.be.called;
+		});
+	});
+
+	describe('reset()', function() {
+		it('Set the models properties back to their original values', function() {
+			this.model.property({ 'testProp': 'a', 'newProp': 'b' });
+			this.model.reset();
+			
+			expect(this.model.property('testProp')).to.equal('test');
+			expect(function() { this.model.property('newProp') }.bind(this)).to.throw('Property doesn\'t exist');
+			
+			this.model.property('testProp', 'z');
+			this.model.reset();
+
+			expect(this.model.property('testProp')).to.equal('test');
 		});
 	});
 });

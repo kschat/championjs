@@ -17,7 +17,6 @@ describe('ioc module', function() {
 		champ.ioc.reset();
 	});
 
-
 	describe('register()', function() {
 		describe('register(key, dependency)', function() {
 			it('Registers the dependency as a constructor under the key passed in', function() {

@@ -12,23 +12,12 @@
 	// Source: src/champion.js
 	var champ = this.champ = {},
 	    
-	    debug = champ.debug = {
-	        on: false,
-	        log: function() {
-	            if(this.on && console.log) { console.log.apply(console, arguments); }
-	        }
-	    },
-	    
 	    DOMEvents = champ.DOMEvents = [
 	        'blur', 'focus', 'focusin', 'focusout', 'load', 'resize', 'scroll',
 	        'unload', 'click', 'dblclick', 'mousedown', 'mouseup', 'mousemove', 
 	        'mouseover', 'mouseout', 'mouseenter', 'mouseleave', 'change', 'select',
 	        'submit', 'keydown', 'keypress', 'keyup', 'error'
 	    ];
-	
-	this.champ.views = {};
-	this.champ.models = {};
-	this.champ.presenters = {};
 
 	// Source: src/util/extend.js
 	champ.extend = function (obj, proto, skip) {
@@ -50,21 +39,22 @@
 	    Class.init = typeof Class.init === 'boolean' ? Class.init : true;
 	    options = options || {};
 	
-	    this.id = options.id || (Date.now ? Date.now() : new Date().getTime());
-	    this.properties = options;
+	    this.id = options.id || this.id || (Date.now ? Date.now() : new Date().getTime());
 	
 	    for(var i in this.inject) {
 	        options[this.inject[i]] = champ.ioc.resolve(this.inject[i]);
 	    }
 	
 	    if(Class.init) { 
-	        this.__construct(options);
+	        this._construct(options);
 	        this.init(options);
 	    }
 	};
 	
 	Class.prototype = champ.extend(Class.prototype, {
-	    __construct: function(options) {},
+	    _construct: function(options) {
+	        this.properties = options;
+	    },
 	
 	    init: function(options) {},
 	
@@ -429,24 +419,28 @@
 
 	// Source: src/view.js
 	var view = champ.view = champ.Class.extend('View', {
-	    __construct: function(options) {
-	        this.container = typeof options.container === 'string'
+	    _construct: function(options) {
+	        this.container = options.container
 	            ? $(options.container) 
-	            : options.container || $('<div>');
+	            : $(this.container) || $('<div>');
 	
 	        this.$ = champ.extend(this.$ || {}, options.$ || {});
-	    
+	        this._initState = [];
+	
 	        for(var key in this.$) {
 	            var events = this.$[key].split(/\s*:\s*/),
 	                selector = events.splice(0, 1)[0];
 	
 	            this.add(key, selector, events);
+	            this._initState[key] = this.$[key].is('input')
+	                ? this.$[key].val()
+	                : this.$[key].text();
 	        }
 	    },
 	    
 	    add: function(name, selector, events) {
 	        var $el = this.container.find(selector);
-	        if($el.length === 0) { return; }
+	        if($el.length === 0) { return false; }
 	
 	        this.$[name] = $el;
 	
@@ -459,18 +453,28 @@
 	                champ.events.trigger('view:' + view.id + ':' + name + ' ' + e.type, e);
 	            };
 	        })(this, name));
+	    },
+	
+	    reset: function() {
+	        for(var i in this._initState) {
+	            var isInput = this.$[i].is('input');
+	             this.$[i][isInput ? 'val' : 'text'](this._initState[i]);
+	        }
 	    }
 	});
 
 	// Source: src/model.js
 	var model = champ.model = champ.Class.extend('Model', {
-	    property: function property(prop, val, silent) {
-	        //If property isn't a string, assume it's an object literal
-	        //and call property on each key value pair
+	    _construct: function(options) {
+	        this.set(this.properties);
+	        this._initState = champ.extend({}, this.properties);
+	    },
+	
+	    property: function(prop, val, silent) {
 	        if(typeof(prop) !== 'string') {
 	            for(var key in prop) {
 	                if(!prop.hasOwnProperty(key)) { continue; }
-	                property.call(this, key, prop[key], val);
+	                this.property.call(this, key, prop[key], val);
 	            }
 	
 	            return;
@@ -486,6 +490,10 @@
 	                value: val
 	            });
 	        }
+	    },
+	
+	    reset: function() {
+	        this.properties = champ.extend({}, this._initState);
 	    }
 	});
 
@@ -497,7 +505,7 @@
 	
 	    events: {},
 	
-	    __construct: function(options) {
+	    _construct: function(options) {
 	        this.views = champ.ioc.resolve(this.views);
 	        this.models = champ.ioc.resolve(this.models);
 	

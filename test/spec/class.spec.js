@@ -42,8 +42,6 @@ describe('Class utility', function() {
 	describe('Class.extend(props)', function() {
 		beforeEach(function() {
 			this.ExtendedClass = champ.Class.extend('ExtendedClass', {
-				__construct: function(options) {},
-
 				init: function(options) {
 					options = options || {};
 					this.p1 = options.p1 || 'default';
@@ -57,8 +55,6 @@ describe('Class utility', function() {
 			this.AnotherExtendedClass = this.ExtendedClass.extend('AnotherExtendedClass', {
 				inject: ['ExtendedClass'],
 
-				__construct: function(options) {},
-				
 				init: function(options) {},
 
 				m2: function() {}
@@ -68,7 +64,7 @@ describe('Class utility', function() {
 				inject: ['DoesntExist']
 			});
 
-			this.constructSpy = sinon.spy(this.ExtendedClass.prototype, '__construct');
+			this.constructSpy = sinon.spy(this.ExtendedClass.prototype, '_construct');
 			this.initSpy = sinon.spy(this.ExtendedClass.prototype, 'init');
 			this.anotherInitSpy = sinon.spy(this.AnotherExtendedClass.prototype, 'init');
 
@@ -93,7 +89,6 @@ describe('Class utility', function() {
 
 		it('calls init when an instance of ExtendedClass is used with "new"', function() {
 			expect(this.initSpy).to.be.calledThrice; //thrice instead of twice because of the injected "ExtendedClass"
-			expect(this.constructSpy).to.be.calledThrice;
 			
 			expect(this.extendedClass1).to.have.ownProperty('p1');
 			expect(this.extendedClass1.p1).to.equal('default');

@@ -5,7 +5,7 @@ var presenter = champ.presenter = champ.Class.extend('Presenter', {
 
     events: {},
 
-    __construct: function(options) {
+    _construct: function(options) {
         this.views = champ.ioc.resolve(this.views);
         this.models = champ.ioc.resolve(this.models);
 

@@ -1,11 +1,14 @@
 var model = champ.model = champ.Class.extend('Model', {
-    property: function property(prop, val, silent) {
-        //If property isn't a string, assume it's an object literal
-        //and call property on each key value pair
+    _construct: function(options) {
+        this.set(this.properties);
+        this._initState = champ.extend({}, this.properties);
+    },
+
+    property: function(prop, val, silent) {
         if(typeof(prop) !== 'string') {
             for(var key in prop) {
                 if(!prop.hasOwnProperty(key)) { continue; }
-                property.call(this, key, prop[key], val);
+                this.property.call(this, key, prop[key], val);
             }
 
             return;
@@ -21,5 +24,9 @@ var model = champ.model = champ.Class.extend('Model', {
                 value: val
             });
         }
+    },
+
+    reset: function() {
+        this.properties = champ.extend({}, this._initState);
     }
 });

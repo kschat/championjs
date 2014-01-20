@@ -50,56 +50,69 @@ describe('view module', function() {
 		});
 	});
 
-	describe('add(name, element)', function() {
-		it('adds the DOM element to the $ object and doesn\'t bind any events', function() {
-			this.view.add('newElement', $('#not-added'));
-			expect(this.view.$).to.have.ownProperty('newElement');
-			expect(this.view.$.newElement).to.have.id('not-added');
+	describe('add()', function() {
+		describe('add(name, element)', function() {
+			it('adds the DOM element to the $ object and doesn\'t bind any events', function() {
+				this.view.add('newElement', $('#not-added'));
+				expect(this.view.$).to.have.ownProperty('newElement');
+				expect(this.view.$.newElement).to.have.id('not-added');
 
-			this.view.$.newElement.trigger('click');
-			expect(this.eventsSpy).to.not.be.called;
+				this.view.$.newElement.trigger('click');
+				expect(this.eventsSpy).to.not.be.called;
+			});
+		});
+
+		describe('add(name, selector)', function() {
+			it('adds the element that matches the selector to the $ object and doesn\'t bind any events', function() {
+				this.view.add('newElement', '#not-added');
+				expect(this.view.$).to.have.ownProperty('newElement');
+				expect(this.view.$.newElement).to.have.id('not-added');
+
+				this.view.$.newElement.trigger('click');
+				expect(this.eventsSpy).to.not.be.called;
+			});
+		});
+
+		describe('add(name, selector, events)', function() {
+			it('adds the element to the $ object with the name passed and binding the events given', function() {
+				this.view.add('myBtn', '#my-btn', 'click mouseover');
+				expect(this.view.$).to.have.ownProperty('myBtn');
+				expect(this.view.$.myBtn).to.have.id('my-btn');
+
+				this.view.$.myBtn.trigger('click');
+				expect(this.eventsSpy).to.be.calledOnce;
+				expect(this.eventsSpy).to.be.calledWith('view:testView:myBtn click');
+
+				this.view.$.myBtn.trigger('mouseover');
+				expect(this.eventsSpy).to.be.calledTwice;
+				expect(this.eventsSpy).to.be.calledWith('view:testView:myBtn mouseover');
+
+				this.view.$.myBtn.trigger('change');
+				expect(this.eventsSpy).to.be.calledTwice;
+				expect(this.eventsSpy).to.not.be.calledWith('view:testView:myBtn change');
+			});
+
+			it('adds the element to the $ object with the name passed and binds all DOM events when "*" is passed in for events', function() {
+				this.view.add('myBtn', '#my-btn', '*');
+				expect(this.view.$).to.have.ownProperty('myBtn');
+				expect(this.view.$.myBtn).to.have.id('my-btn');
+
+				for(var key in champ.DOMEvents) {
+					this.view.$.myBtn.trigger(champ.DOMEvents[key]);
+					expect(this.eventsSpy).to.be.calledWith('view:testView:myBtn ' + champ.DOMEvents[key]);
+				}
+			});
+		});
+	});
+	
+	describe('reset()', function() {
+		it('Sets the view back to its original state', function() {
+			this.view.$.testLink2.text('a');
+			this.view.reset();
+			this.view.$.testLink2.trigger('click');
+			expect(this.view.$.testLink2).to.have.text('test link');
+			expect(this.eventsSpy).to.be.calledWith('view:testView:testLink2 click');
 		});
 	});
 
-	describe('add(name, selector)', function() {
-		it('adds the element that matches the selector to the $ object and doesn\'t bind any events', function() {
-			this.view.add('newElement', '#not-added');
-			expect(this.view.$).to.have.ownProperty('newElement');
-			expect(this.view.$.newElement).to.have.id('not-added');
-
-			this.view.$.newElement.trigger('click');
-			expect(this.eventsSpy).to.not.be.called;
-		});
-	});
-
-	describe('add(name, selector, events)', function() {
-		it('adds the element to the $ object with the name passed and binding the events given', function() {
-			this.view.add('myBtn', '#my-btn', 'click mouseover');
-			expect(this.view.$).to.have.ownProperty('myBtn');
-			expect(this.view.$.myBtn).to.have.id('my-btn');
-
-			this.view.$.myBtn.trigger('click');
-			expect(this.eventsSpy).to.be.calledOnce;
-			expect(this.eventsSpy).to.be.calledWith('view:testView:myBtn click');
-
-			this.view.$.myBtn.trigger('mouseover');
-			expect(this.eventsSpy).to.be.calledTwice;
-			expect(this.eventsSpy).to.be.calledWith('view:testView:myBtn mouseover');
-
-			this.view.$.myBtn.trigger('change');
-			expect(this.eventsSpy).to.be.calledTwice;
-			expect(this.eventsSpy).to.not.be.calledWith('view:testView:myBtn change');
-		});
-
-		it('adds the element to the $ object with the name passed and binds all DOM events when "*" is passed in for events', function() {
-			this.view.add('myBtn', '#my-btn', '*');
-			expect(this.view.$).to.have.ownProperty('myBtn');
-			expect(this.view.$.myBtn).to.have.id('my-btn');
-
-			for(var key in champ.DOMEvents) {
-				this.view.$.myBtn.trigger(champ.DOMEvents[key]);
-				expect(this.eventsSpy).to.be.calledWith('view:testView:myBtn ' + champ.DOMEvents[key]);
-			}
-		});
-	});
 });
