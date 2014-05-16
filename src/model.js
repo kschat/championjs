@@ -1,6 +1,6 @@
 var model = champ.model = champ.Class.extend('Model', {
     _construct: function(options) {
-        this.set(this.properties);
+        this.properties = champ.extend({}, this.properties);
         this._initState = champ.extend({}, this.properties);
     },
 
@@ -14,8 +14,8 @@ var model = champ.model = champ.Class.extend('Model', {
             return;
         }
 
-        if(!this.properties[prop] && !val) { throw 'Property doesn\'t exist'; }
-        if(!val) { return this.properties[prop]; }
+        if(this.properties[prop] == null && val == null) { throw 'Property doesn\'t exist'; }
+        if(val == null) { return this.properties[prop]; }
         this.properties[prop] = val;
         
         if(!silent) {

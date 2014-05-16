@@ -6,11 +6,13 @@ describe('ioc module', function() {
 	beforeEach(function() {
 		this.dependency1 = function() {};
 		this.dependency2 = function(testConstructor) { this.d1 = testConstructor; };
+    this.dependency3 = function(notRegistered) {};
 
 		champ.ioc
 			.register('testConstructor', this.dependency1)
 			.register('testInstance', new this.dependency1())
-			.register('dependencyChain', this.dependency2);
+			.register('dependencyChain', this.dependency2)
+      .register('unregisteredDependency', this.dependency3);
 	});
 
 	afterEach(function() {
@@ -53,6 +55,17 @@ describe('ioc module', function() {
 					champ.ioc.register('dependencyChain', this.dependency1);
 				}.bind(this)).to.throw('Dependency already registered');
 			});
+
+      it('Doesn\'t resolve dependencies until resolve() is called', function() {
+        var dep1 = function(dep2) { console.info(dep2); },
+            dep2 = function() {};
+
+        champ.ioc.register('dep1', dep1);
+
+        expect(function() {
+          champ.ioc.resolve('dep1');
+        }).to.throw('"dep2" was never registered');
+      });
 		});
 	});
 

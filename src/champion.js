@@ -1,4 +1,6 @@
-var champ = this.champ = {},
+var _global = this,
+
+    champ = _global.champ = {},
     
     DOMEvents = champ.DOMEvents = [
         'blur', 'focus', 'focusin', 'focusout', 'load', 'resize', 'scroll',

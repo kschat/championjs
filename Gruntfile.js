@@ -12,18 +12,19 @@ module.exports = function(grunt) {
 				src: [
 					'src/champion.js',
 					'src/util/extend.js',
+          'src/util/guid.js',
 					'src/util/class.js',
 					'src/util/namespace.js',
 					'src/util/ioc.js',
+					'src/util/history.js',
 					'src/event.js',
 					'src/router.js',
 					'src/view.js',
 					'src/model.js',
 					'src/presenter.js',
-                    'src/templates/*.js'
+          'src/templates/*.js'
 				],
-				dest:
-                    '<%= pkg.name %>.js'
+				dest: '<%= pkg.name %>.js'
 			},
 			options: {
 				banner: '/*\n' +
@@ -55,7 +56,7 @@ module.exports = function(grunt) {
 		watch: {
 			test: {
 				files: ['src/**/*.js', 'test/spec/**/*.js'],
-				tasks: ['concat:build', 'jasmine']
+				tasks: ['concat:build', 'connect:test', 'jasmine']
 			}
 		},
 		concurrent: {
@@ -69,6 +70,7 @@ module.exports = function(grunt) {
 		jasmine: {
 			src: 'champion.js',
 			options: {
+				host: 'http://127.0.0.1:8000',
 				specs: 'test/spec/*.js',
 				vendor: [
 					'test/vendor/sinon/sinon.js', 
@@ -78,28 +80,38 @@ module.exports = function(grunt) {
 				helpers: [
 					'test/helpers/sinon-chai/sinon-chai.js',
 					'test/helpers/jasmine-jquery/jasmine-jquery.js',
-					'test/helpers/chai-jquery/chai-jquery.js'
+					'test/helpers/chai-jquery/chai-jquery.js',
+					'test/helpers/history-shim/history-shim.js'
 				],
 				outfile: 'test/_SpecRunner.html',
 				keepRunner: true
 			}
 		},
-        copy: {
-            build: {
-                files: [
-                    {expand: true, src: '<%= pkg.name %>.js', dest: 'test-app/app/scripts'}
-                ]
-            }
+    copy: {
+        build: {
+            files: [
+                { expand: true, src: '<%= pkg.name %>.js', dest: 'test-app/app/scripts' }
+            ]
         }
+    },
+    connect: {
+    	test: {
+    		options: {
+    			hostname: '127.0.0.1',
+    			livereload: true
+    		}
+    	}
+    }
 	});
 
 	grunt.loadNpmTasks('grunt-contrib-uglify');
 	grunt.loadNpmTasks('grunt-contrib-concat');
 	grunt.loadNpmTasks('grunt-contrib-watch');
-    grunt.loadNpmTasks('grunt-contrib-copy');
+  grunt.loadNpmTasks('grunt-contrib-copy');
 	grunt.loadNpmTasks('grunt-nodemon');
 	grunt.loadNpmTasks('grunt-concurrent');
 	grunt.loadNpmTasks('grunt-contrib-jasmine');
+	grunt.loadNpmTasks('grunt-contrib-connect');
 
 	grunt.registerTask('test', ['jasmine']);
 	grunt.registerTask('build', ['concat:build', 'uglify:build', 'copy:build']);

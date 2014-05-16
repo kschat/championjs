@@ -10,7 +10,9 @@
 	'use strict';
 
 	// Source: src/champion.js
-	var champ = this.champ = {},
+	var _global = this,
+	
+	    champ = _global.champ = {},
 	    
 	    DOMEvents = champ.DOMEvents = [
 	        'blur', 'focus', 'focusin', 'focusout', 'load', 'resize', 'scroll',
@@ -34,18 +36,26 @@
 	    return obj;
 	};
 
+	// Source: src/util/guid.js
+	champ.guid = function() {
+	  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+	    var r = Math.random()*16|0, v = c === 'x' ? r : (r&0x3|0x8);
+	    return v.toString(16);
+	  });
+	};
+
 	// Source: src/util/class.js
 	var Class = champ.Class = function Class(options) {
 	    Class.init = typeof Class.init === 'boolean' ? Class.init : true;
 	    options = options || {};
 	
-	    this.id = options.id || this.id || (Date.now ? Date.now() : new Date().getTime());
+	    this.id = options.id || champ.guid();
 	
-	    for(var i in this.inject) {
-	        options[this.inject[i]] = champ.ioc.resolve(this.inject[i]);
-	    }
+	    if(Class.init) {
+	        for(var i in this.inject) {
+	          options[this.inject[i]] = champ.ioc.resolve(this.inject[i]);
+	        }
 	
-	    if(Class.init) { 
 	        this._construct(options);
 	        this.init(options);
 	    }
@@ -93,7 +103,7 @@
 	        proto = new this();
 	    Class.init = true;
 	    
-	    var Base = function Class(options) { return base.apply(this, arguments); };
+	    var Base = function Class() { return base.apply(this, arguments); };
 	    
 	    Base.prototype = champ.extend(proto, props);
 	    Base.constructor = Class;
@@ -117,53 +127,89 @@
 
 	// Source: src/util/ioc.js
 	var ioc = champ.ioc = (function() {
-		var _cache = {},
-			_argMatcher = /^function[\s\w]*\((.*)\)/m,
-			_argSplitter = /\s*,\s*/,
-			_resolveInstance = function(arg) { return typeof arg === 'function' ? new arg : arg; };
+	  var _cache = {},
+	    _argMatcher = /^function[\s\w]*\((.*)\)[\s]*{/m,
+	    _argSplitter = /\s*,\s*/,
+	    _resolveInstance = function(arg) { return typeof arg === 'function' ? new arg : arg; };
 	
-		return {
-			register: function(key, dependency, override) {
-				if(!override && _cache[key]) { throw Error('Dependency already registered'); }
-				_cache[key] = _cache[key] || typeof dependency === 'function'
-					? this.inject(dependency)
-					: dependency;
+	  return {
+	    register: function(key, dependency, override) {
+	      if(!override && _cache[key]) { throw Error('Dependency already registered'); }
+	      _cache[key] = dependency;
 	
-				return this;
-			},
+	      return this;
+	    },
 	
-			unregister: function(keys) {
-				keys = typeof keys === 'string' ? [keys] : keys;
-				for(var i=0; i<keys.length; i++) { delete _cache[keys[i]]; }
-			},
+	    unregister: function(keys) {
+	      keys = typeof keys === 'string' ? [keys] : keys;
+	      for(var i=0; i<keys.length; i++) { delete _cache[keys[i]]; }
 	
-			isRegistered: function(key) {
-				return !!_cache[key];
-			},
+	      return this;
+	    },
 	
-			inject: function(func) {
-				var dependencies = _argMatcher.exec(func)[1].split(_argSplitter);
-				for(var key in dependencies) {
-					dependencies[key] = _resolveInstance(_cache[dependencies[key]]);
-				}
+	    isRegistered: function(key) {
+	      return !!_cache[key];
+	    },
 	
-				return func.bind.apply(func, [func].concat(dependencies));
-			},
+	    inject: function(func) {
+	      var dependencies = (_argMatcher.exec(func) || '  ')[1];
 	
-			resolve: function(key) {
-				if(typeof key !== 'string') {
-					var objs = [];
-					for(var k in key) { objs.push(this.resolve(key[k])); }
-					return objs;
-				}
-				if(!_cache[key]) { throw Error('"' + key + '" was never registered'); }
-				return _resolveInstance(_cache[key]);
-			},
+	      if(!dependencies.trim()) { return func; }
 	
-			reset: function() {
-				_cache = {};
-			}
-		};
+	      dependencies = dependencies.split(_argSplitter);
+	
+	      for(var i=0; i<dependencies.length; i++) {
+	        var dependency = _cache[dependencies[i]];
+	
+	        if(!dependency) { throw Error('"' + dependencies[i] + '" was never registered'); }
+	        
+	        dependencies[i] = _resolveInstance(dependency);
+	      }
+	
+	      return func.bind.apply(func, [func].concat(dependencies));
+	    },
+	
+	    resolve: function(key) {
+	      if(typeof key !== 'string') {
+	        var objs = [];
+	        for(var k in key) { objs.push(this.resolve(key[k])); }
+	        return objs;
+	      }
+	
+	      if(!_cache[key]) { throw Error('"' + key + '" was never registered'); }
+	
+	      return _resolveInstance(this.inject(_cache[key]));
+	    },
+	
+	    reset: function() {
+	      _cache = {};
+	
+	      return this;
+	    }
+	  };
+	})();
+
+	// Source: src/util/history.js
+	var history = champ.history = (function() {
+		var history = _global.history,
+			_history = {};
+	
+		for(var i in history) (function(i) {
+			_history[i] = typeof history[i] !== 'function'
+				? history[i]
+				: function() {
+					history[i].apply(history, arguments);
+					
+					_history.state = history.state;
+	        		_history.length = history.length;
+	
+					champ.events
+						.trigger('history:update', { action: i, state: _history.state })
+						.trigger('history:' + i, { state: _history.state });
+				};
+		})(i);
+	
+		return _history;
 	})();
 
 	// Source: src/event.js
@@ -215,70 +261,45 @@
 	})();
 
 	// Source: src/router.js
-	// disclaimer:
-	
-	// this code will be cleaned up. -- I promise!
-	
 	//todo
 	// 1) add query string parsing
 	// 2) add fallbacks for browsers that don't support push/popstate
 	
-	
-	(function (champ, window, document) {
-	
+	var router = champ.router = (function () {
 	    var _routes = [],
 	        _isRouterStarted = false,
-	        _isHtml5Supported = null,// to be set below.
+	        _history = _global.history,
+	        _routeEvent = 'pushState' in _history
+	            ? 'popstate'
+	            : 'hashchange',
 	        _currentHash = null,
 	        _settings = {
 	            html5Mode: true
-	        },
-	        router = {};
+	        };
 	
 	    var start = function () {
-	
-	        _isHtml5Supported = !!('pushState' in window.history);
-	
 	        onInitialLoad();
-	
 	        setupListeners();
 	    };
 	
 	    var setupListeners = function () {
-	
-	        window.addEventListener('load', onInitialLoad , false);
-	
-	        window.addEventListener('click', onClick, false);
-	
-	        if (_isHtml5Supported == true) {
-	
-	            window.addEventListener('popstate', onPopState, false);
-	
-	        }
-	        else {
-	
-	            startHashMonitoring();
-	
-	        }
-	
+	        $(_global).on('load', onInitialLoad);
+	        $(_global).on('click', onClick);
+	        $(_global).on(_supportsPushState ? 'popstate' : 'hashchange', onPopState);
 	    };
 	
 	    var onPopState = function (e) {
-	
-	        matchRoute(document.location.pathname);
+	        matchRoute(_global.location.pathname);
 	    };
 	
 	    var onInitialLoad = function () {
-	
 	        if (_isRouterStarted == false) {
-	            matchRoute(document.location.pathname);
+	            matchRoute(_global.location.pathname);
 	            _isRouterStarted = true;
 	        }
-	
 	    };
 	
 	    var onClick = function (e) {
-	
 	        if (1 != which(e)) return;
 	        if (e.metaKey || e.ctrlKey || e.shiftKey) return;
 	        if (e.defaultPrevented) return;
@@ -313,62 +334,48 @@
 	    };
 	
 	    var startHashMonitoring = function () {
-	
 	        setInterval(function () {
-	            var newHash = window.location.href;
+	            var newHash = _global.location.href;
 	
 	            if (_currentHash !== newHash) {
 	                _currentHash = newHash;
-	                matchRoute(document.location.pathname);
+	                matchRoute(_global.location.pathname);
 	            }
 	        });
-	
 	    };
 	
 	    var forceChange = function (route) {
-	
-	        if (matchRoute(route) == true) {
-	
-	            if (_isHtml5Supported) {
+	        if (matchRoute(route)) {
+	            if (_supportsPushState) {
 	                //state null for now
-	                window.history.replaceState(null, window.document.title, getBase() + route)
+	                _global.history.replaceState(null, _global.document.title, getBase() + route)
 	            }
 	            else {
-	
-	                window.location.hash = route;
-	
+	                _global.location.hash = route;
 	            }
-	
 	        }
 	    };
 	
 	    var parseRoute = function (path) {
-	
 	        var nameRegex = new RegExp(":([^/.\\\\]+)", "g"),
 	            newRegex = "" + path,
 	            values = nameRegex.exec(path);
 	
 	        if (values != null) {
-	
 	            newRegex = newRegex.replace(values[0], "([^/.\\\\]+)");
 	        }
 	
 	        newRegex = newRegex + '$';
 	
-	        return {regex: new RegExp(newRegex)};
-	
+	        return { regex: new RegExp(newRegex)} ;
 	    };
 	
 	    var matchRoute = function (url) {
-	
 	        for (var i = 0; i < _routes.length; i++) {
-	
 	            var route = _routes[i],
 	                match = route.params.regex.exec(url);
 	
-	            if (!match) {
-	                continue;
-	            }
+	            if (!match) { continue; }
 	
 	            route.callback({url: url});
 	
@@ -376,25 +383,18 @@
 	        }
 	
 	        return false;
-	
 	    };
 	
 	    var getBase = function () {
+	        var base = _global.location.protocol + '//' + _global.location.hostname;
 	
-	        var base = window.location.protocol + '//' + window.location.hostname;
-	
-	        if (window.location.port) {
-	
-	            base += ':' + window.location.port;
-	        }
+	        if (_global.location.port) { base += ':' + _global.location.port; }
 	
 	        return base;
-	
 	    };
 	
 	    var which = function (e) {
-	
-	        e = e || window.event;
+	        e = e || _global.event;
 	
 	        var result = e.which == null ? e.button : e.which;
 	
@@ -402,20 +402,55 @@
 	    };
 	
 	    var sameOrigin = function (href) {
-	
 	        return  href.indexOf(getBase()) == 0;
 	    };
 	
-	    start();
-	
-	    router.addRoute = function (route, callback) {
-	        _routes.push({params: parseRoute(route), callback: callback});
+	    var _match = function(e) {
+	        for(var i=0; i<_routes.length; i++) {
+	            if(_routes[i].url === _global.location) { _performRoute(_routes[i].callbacks, e); }
+	        }
 	    };
 	
-	    champ.router = router;
+	    var _performRoute = function(callbacks, e) {
+	        for(var i=0; i<callbacks.length; i++) { callbacks[i](e); }
+	    };
 	
-	})(champ || {}, window, document);
+	    return {
+	        start: function() {
+	            champ.events.on('history:update', _match);
 	
+	            return this;
+	        },
+	
+	        stop: function() {
+	            $(_global).off(_routeEvent);
+	
+	            return this;
+	        },
+	
+	        config: function(options) {
+	            for(var s in options) { _settings[s] = options[s]; }
+	
+	            return this;
+	        },
+	
+	        route: function(route) {
+	            _routes.push({ url: route, callbacks: [] });
+	
+	            return this;
+	        },
+	
+	        then: function(callback) {
+	            _routes[_routes.length - 1].callbacks.push(callback);
+	
+	            return this;
+	        },
+	
+	        navigate: function(url) {
+	            
+	        }
+	    };
+	})();
 
 	// Source: src/view.js
 	var view = champ.view = champ.Class.extend('View', {
@@ -424,7 +459,8 @@
 	            ? $(options.container) 
 	            : $(this.container) || $('<div>');
 	
-	        this.$ = champ.extend(this.$ || {}, options.$ || {});
+	        //this.$ = champ.extend({}, options.$ || {});
+	        this.$ = champ.extend({}, champ.extend(options.$ || {}, this.$ || {}));
 	        this._initState = [];
 	
 	        for(var key in this.$) {
@@ -466,7 +502,7 @@
 	// Source: src/model.js
 	var model = champ.model = champ.Class.extend('Model', {
 	    _construct: function(options) {
-	        this.set(this.properties);
+	        this.properties = champ.extend({}, this.properties);
 	        this._initState = champ.extend({}, this.properties);
 	    },
 	
@@ -480,8 +516,8 @@
 	            return;
 	        }
 	
-	        if(!this.properties[prop] && !val) { throw 'Property doesn\'t exist'; }
-	        if(!val) { return this.properties[prop]; }
+	        if(this.properties[prop] == null && val == null) { throw 'Property doesn\'t exist'; }
+	        if(val == null) { return this.properties[prop]; }
 	        this.properties[prop] = val;
 	        
 	        if(!silent) {

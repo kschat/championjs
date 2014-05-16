@@ -35,7 +35,8 @@
     "sinon-chai": "~2.4.0",
     "sinon": "~1.7.3",
     "jquery": "~1.8.3",
-    "grunt-contrib-copy": "~0.4.1"
+    "grunt-contrib-copy": "~0.4.1",
+    "grunt-contrib-connect": "~0.6.0"
   },
   "engines": {
     "node": "~0.10.18",

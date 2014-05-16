@@ -1,67 +1,42 @@
-// disclaimer:
-
-// this code will be cleaned up. -- I promise!
-
 //todo
 // 1) add query string parsing
 // 2) add fallbacks for browsers that don't support push/popstate
 
-
-(function (champ, window, document) {
-
+var router = champ.router = (function () {
     var _routes = [],
         _isRouterStarted = false,
-        _isHtml5Supported = null,// to be set below.
+        _history = _global.history,
+        _routeEvent = 'pushState' in _history
+            ? 'popstate'
+            : 'hashchange',
         _currentHash = null,
         _settings = {
             html5Mode: true
-        },
-        router = {};
+        };
 
     var start = function () {
-
-        _isHtml5Supported = !!('pushState' in window.history);
-
         onInitialLoad();
-
         setupListeners();
     };
 
     var setupListeners = function () {
-
-        window.addEventListener('load', onInitialLoad , false);
-
-        window.addEventListener('click', onClick, false);
-
-        if (_isHtml5Supported == true) {
-
-            window.addEventListener('popstate', onPopState, false);
-
-        }
-        else {
-
-            startHashMonitoring();
-
-        }
-
+        $(_global).on('load', onInitialLoad);
+        $(_global).on('click', onClick);
+        $(_global).on(_supportsPushState ? 'popstate' : 'hashchange', onPopState);
     };
 
     var onPopState = function (e) {
-
-        matchRoute(document.location.pathname);
+        matchRoute(_global.location.pathname);
     };
 
     var onInitialLoad = function () {
-
         if (_isRouterStarted == false) {
-            matchRoute(document.location.pathname);
+            matchRoute(_global.location.pathname);
             _isRouterStarted = true;
         }
-
     };
 
     var onClick = function (e) {
-
         if (1 != which(e)) return;
         if (e.metaKey || e.ctrlKey || e.shiftKey) return;
         if (e.defaultPrevented) return;
@@ -96,62 +71,48 @@
     };
 
     var startHashMonitoring = function () {
-
         setInterval(function () {
-            var newHash = window.location.href;
+            var newHash = _global.location.href;
 
             if (_currentHash !== newHash) {
                 _currentHash = newHash;
-                matchRoute(document.location.pathname);
+                matchRoute(_global.location.pathname);
             }
         });
-
     };
 
     var forceChange = function (route) {
-
-        if (matchRoute(route) == true) {
-
-            if (_isHtml5Supported) {
+        if (matchRoute(route)) {
+            if (_supportsPushState) {
                 //state null for now
-                window.history.replaceState(null, window.document.title, getBase() + route)
+                _global.history.replaceState(null, _global.document.title, getBase() + route)
             }
             else {
-
-                window.location.hash = route;
-
+                _global.location.hash = route;
             }
-
         }
     };
 
     var parseRoute = function (path) {
-
         var nameRegex = new RegExp(":([^/.\\\\]+)", "g"),
             newRegex = "" + path,
             values = nameRegex.exec(path);
 
         if (values != null) {
-
             newRegex = newRegex.replace(values[0], "([^/.\\\\]+)");
         }
 
         newRegex = newRegex + '$';
 
-        return {regex: new RegExp(newRegex)};
-
+        return { regex: new RegExp(newRegex)} ;
     };
 
     var matchRoute = function (url) {
-
         for (var i = 0; i < _routes.length; i++) {
-
             var route = _routes[i],
                 match = route.params.regex.exec(url);
 
-            if (!match) {
-                continue;
-            }
+            if (!match) { continue; }
 
             route.callback({url: url});
 
@@ -159,25 +120,18 @@
         }
 
         return false;
-
     };
 
     var getBase = function () {
+        var base = _global.location.protocol + '//' + _global.location.hostname;
 
-        var base = window.location.protocol + '//' + window.location.hostname;
-
-        if (window.location.port) {
-
-            base += ':' + window.location.port;
-        }
+        if (_global.location.port) { base += ':' + _global.location.port; }
 
         return base;
-
     };
 
     var which = function (e) {
-
-        e = e || window.event;
+        e = e || _global.event;
 
         var result = e.which == null ? e.button : e.which;
 
@@ -185,16 +139,52 @@
     };
 
     var sameOrigin = function (href) {
-
         return  href.indexOf(getBase()) == 0;
     };
 
-    start();
-
-    router.addRoute = function (route, callback) {
-        _routes.push({params: parseRoute(route), callback: callback});
+    var _match = function(e) {
+        for(var i=0; i<_routes.length; i++) {
+            if(_routes[i].url === _global.location) { _performRoute(_routes[i].callbacks, e); }
+        }
     };
 
-    champ.router = router;
+    var _performRoute = function(callbacks, e) {
+        for(var i=0; i<callbacks.length; i++) { callbacks[i](e); }
+    };
 
-})(champ || {}, window, document);
+    return {
+        start: function() {
+            champ.events.on('history:update', _match);
+
+            return this;
+        },
+
+        stop: function() {
+            $(_global).off(_routeEvent);
+
+            return this;
+        },
+
+        config: function(options) {
+            for(var s in options) { _settings[s] = options[s]; }
+
+            return this;
+        },
+
+        route: function(route) {
+            _routes.push({ url: route, callbacks: [] });
+
+            return this;
+        },
+
+        then: function(callback) {
+            _routes[_routes.length - 1].callbacks.push(callback);
+
+            return this;
+        },
+
+        navigate: function(url) {
+            
+        }
+    };
+})();

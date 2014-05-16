@@ -4,7 +4,8 @@ var view = champ.view = champ.Class.extend('View', {
             ? $(options.container) 
             : $(this.container) || $('<div>');
 
-        this.$ = champ.extend(this.$ || {}, options.$ || {});
+        //this.$ = champ.extend({}, options.$ || {});
+        this.$ = champ.extend({}, champ.extend(options.$ || {}, this.$ || {}));
         this._initState = [];
 
         for(var key in this.$) {

@@ -2,13 +2,13 @@ var Class = champ.Class = function Class(options) {
     Class.init = typeof Class.init === 'boolean' ? Class.init : true;
     options = options || {};
 
-    this.id = options.id || this.id || (Date.now ? Date.now() : new Date().getTime());
+    this.id = options.id || champ.guid();
 
-    for(var i in this.inject) {
-        options[this.inject[i]] = champ.ioc.resolve(this.inject[i]);
-    }
+    if(Class.init) {
+        for(var i in this.inject) {
+          options[this.inject[i]] = champ.ioc.resolve(this.inject[i]);
+        }
 
-    if(Class.init) { 
         this._construct(options);
         this.init(options);
     }
@@ -56,7 +56,7 @@ Class.extend = function(name, props) {
         proto = new this();
     Class.init = true;
     
-    var Base = function Class(options) { return base.apply(this, arguments); };
+    var Base = function Class() { return base.apply(this, arguments); };
     
     Base.prototype = champ.extend(proto, props);
     Base.constructor = Class;

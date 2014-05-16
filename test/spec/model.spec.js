@@ -7,14 +7,12 @@ describe('model module', function() {
 		this.triggerSpy = sinon.spy(champ.events, 'trigger');
 
 		this.TestModel = champ.model.extend('TestModel', {
-			id: 'testModel',
-
 			properties: {
 				testProp: 'test'
 			}
 		});
 
-		this.model = new this.TestModel();
+		this.model = new this.TestModel({ id: 'testModel' });
 	});
 
 	afterEach(function() {

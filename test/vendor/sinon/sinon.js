@@ -390,7 +390,6 @@ var sinon = (function (buster) {
              sorry */
         }
     }
-console.log(sinon.spy);
 
     return sinon;
 }(typeof buster == "object" && buster));
