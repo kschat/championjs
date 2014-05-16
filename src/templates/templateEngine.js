@@ -1,13 +1,11 @@
 (function (champ) {
+  var engine = {};
 
-    var engine = {};
+  engine.render = function (template) {
+    console.log('templateengine.get still in development');
+  };
 
-    engine.render = function (template) {
-        console.log('templateengine.get still in development');
-    };
+  champ.templates = champ.templates || {};
 
-    champ.templates = champ.templates || {};
-
-    champ.templates.render = engine.render;
-
+  champ.templates.render = engine.render;
 })(champ || {});

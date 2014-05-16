@@ -3,188 +3,192 @@
 // 2) add fallbacks for browsers that don't support push/popstate
 
 var router = champ.router = (function () {
-    var _routes = [],
-        _isRouterStarted = false,
-        _history = _global.history,
-        _routeEvent = 'pushState' in _history
-            ? 'popstate'
-            : 'hashchange',
-        _currentHash = null,
-        _settings = {
-            html5Mode: true
-        };
+  var _routes = []
+    , _isRouterStarted = false
 
-    var start = function () {
-        onInitialLoad();
-        setupListeners();
-    };
+    , _history = _global.history
+    
+    , _routeEvent = 'pushState' in _history
+        ? 'popstate'
+        : 'hashchange'
+    
+    , _currentHash = null
+    
+    , _settings = {
+        html5Mode: true
+      };
 
-    var setupListeners = function () {
-        $(_global).on('load', onInitialLoad);
-        $(_global).on('click', onClick);
-        $(_global).on(_supportsPushState ? 'popstate' : 'hashchange', onPopState);
-    };
+  var start = function () {
+    onInitialLoad();
+    setupListeners();
+  };
 
-    var onPopState = function (e) {
+  var setupListeners = function () {
+    $(_global).on('load', onInitialLoad);
+    $(_global).on('click', onClick);
+    $(_global).on(_supportsPushState ? 'popstate' : 'hashchange', onPopState);
+  };
+
+  var onPopState = function (e) {
+    matchRoute(_global.location.pathname);
+  };
+
+  var onInitialLoad = function () {
+    if (_isRouterStarted == false) {
+      matchRoute(_global.location.pathname);
+      _isRouterStarted = true;
+    }
+  };
+
+  var onClick = function (e) {
+    if (1 != which(e)) return;
+    if (e.metaKey || e.ctrlKey || e.shiftKey) return;
+    if (e.defaultPrevented) return;
+
+    // ensure link
+    var el = e.target;
+    while (el && 'A' != el.nodeName) el = el.parentNode;
+    if (!el || 'A' != el.nodeName) return;
+
+    // ensure non-hash for the same path
+    var link = el.getAttribute('href');
+    if (el.pathname == location.pathname && (el.hash || '#' == link)) return;
+
+    // check target
+    if (el.target) return;
+
+    // x-origin
+    if (!sameOrigin(el.href)) return;
+
+    // rebuild path
+    var path = el.pathname + el.search + (el.hash || '');
+
+    // same page
+    var orig = path + el.hash;
+
+    path = path.replace('/', '');
+    if ('/' && orig == path) return;
+
+    e.preventDefault();
+
+    forceChange(orig);
+  };
+
+  var startHashMonitoring = function () {
+    setInterval(function () {
+      var newHash = _global.location.href;
+
+      if (_currentHash !== newHash) {
+        _currentHash = newHash;
         matchRoute(_global.location.pathname);
-    };
+      }
+    });
+  };
 
-    var onInitialLoad = function () {
-        if (_isRouterStarted == false) {
-            matchRoute(_global.location.pathname);
-            _isRouterStarted = true;
-        }
-    };
+  var forceChange = function (route) {
+    if (matchRoute(route)) {
+      if (_supportsPushState) {
+        //state null for now
+        _global.history.replaceState(null, _global.document.title, getBase() + route)
+      }
+      else {
+        _global.location.hash = route;
+      }
+    }
+  };
 
-    var onClick = function (e) {
-        if (1 != which(e)) return;
-        if (e.metaKey || e.ctrlKey || e.shiftKey) return;
-        if (e.defaultPrevented) return;
+  var parseRoute = function (path) {
+    var nameRegex = new RegExp(":([^/.\\\\]+)", "g")
+      , newRegex = "" + path
+      , values = nameRegex.exec(path);
 
-        // ensure link
-        var el = e.target;
-        while (el && 'A' != el.nodeName) el = el.parentNode;
-        if (!el || 'A' != el.nodeName) return;
+    if (values != null) {
+      newRegex = newRegex.replace(values[0], "([^/.\\\\]+)");
+    }
 
-        // ensure non-hash for the same path
-        var link = el.getAttribute('href');
-        if (el.pathname == location.pathname && (el.hash || '#' == link)) return;
+    newRegex = newRegex + '$';
 
-        // check target
-        if (el.target) return;
+    return { regex: new RegExp(newRegex) };
+  };
 
-        // x-origin
-        if (!sameOrigin(el.href)) return;
+  var matchRoute = function (url) {
+    for (var i = 0; i < _routes.length; i++) {
+      var route = _routes[i]
+        , match = route.params.regex.exec(url);
 
-        // rebuild path
-        var path = el.pathname + el.search + (el.hash || '');
+      if (!match) { continue; }
 
-        // same page
-        var orig = path + el.hash;
+      route.callback({url: url});
 
-        path = path.replace('/', '');
-        if ('/' && orig == path) return;
+      return true;
+    }
 
-        e.preventDefault();
+    return false;
+  };
 
-        forceChange(orig);
-    };
+  var getBase = function () {
+    var base = _global.location.protocol + '//' + _global.location.hostname;
 
-    var startHashMonitoring = function () {
-        setInterval(function () {
-            var newHash = _global.location.href;
+    if (_global.location.port) { base += ':' + _global.location.port; }
 
-            if (_currentHash !== newHash) {
-                _currentHash = newHash;
-                matchRoute(_global.location.pathname);
-            }
-        });
-    };
+    return base;
+  };
 
-    var forceChange = function (route) {
-        if (matchRoute(route)) {
-            if (_supportsPushState) {
-                //state null for now
-                _global.history.replaceState(null, _global.document.title, getBase() + route)
-            }
-            else {
-                _global.location.hash = route;
-            }
-        }
-    };
+  var which = function (e) {
+    e = e || _global.event;
 
-    var parseRoute = function (path) {
-        var nameRegex = new RegExp(":([^/.\\\\]+)", "g"),
-            newRegex = "" + path,
-            values = nameRegex.exec(path);
+    var result = e.which == null ? e.button : e.which;
 
-        if (values != null) {
-            newRegex = newRegex.replace(values[0], "([^/.\\\\]+)");
-        }
+    return result;
+  };
 
-        newRegex = newRegex + '$';
+  var sameOrigin = function (href) {
+    return  href.indexOf(getBase()) == 0;
+  };
 
-        return { regex: new RegExp(newRegex)} ;
-    };
+  var _match = function(e) {
+    for(var i=0; i<_routes.length; i++) {
+      if(_routes[i].url === _global.location) { _performRoute(_routes[i].callbacks, e); }
+    }
+  };
 
-    var matchRoute = function (url) {
-        for (var i = 0; i < _routes.length; i++) {
-            var route = _routes[i],
-                match = route.params.regex.exec(url);
+  var _performRoute = function(callbacks, e) {
+    for(var i=0; i<callbacks.length; i++) { callbacks[i](e); }
+  };
 
-            if (!match) { continue; }
+  return {
+    start: function() {
+      champ.events.on('history:update', _match);
 
-            route.callback({url: url});
+      return this;
+    },
 
-            return true;
-        }
+    stop: function() {
+      $(_global).off(_routeEvent);
 
-        return false;
-    };
+      return this;
+    },
 
-    var getBase = function () {
-        var base = _global.location.protocol + '//' + _global.location.hostname;
+    config: function(options) {
+      for(var s in options) { _settings[s] = options[s]; }
 
-        if (_global.location.port) { base += ':' + _global.location.port; }
+      return this;
+    },
 
-        return base;
-    };
+    route: function(route) {
+      _routes.push({ url: route, callbacks: [] });
 
-    var which = function (e) {
-        e = e || _global.event;
+      return this;
+    },
 
-        var result = e.which == null ? e.button : e.which;
+    then: function(callback) {
+      _routes[_routes.length - 1].callbacks.push(callback);
 
-        return result;
-    };
+      return this;
+    },
 
-    var sameOrigin = function (href) {
-        return  href.indexOf(getBase()) == 0;
-    };
-
-    var _match = function(e) {
-        for(var i=0; i<_routes.length; i++) {
-            if(_routes[i].url === _global.location) { _performRoute(_routes[i].callbacks, e); }
-        }
-    };
-
-    var _performRoute = function(callbacks, e) {
-        for(var i=0; i<callbacks.length; i++) { callbacks[i](e); }
-    };
-
-    return {
-        start: function() {
-            champ.events.on('history:update', _match);
-
-            return this;
-        },
-
-        stop: function() {
-            $(_global).off(_routeEvent);
-
-            return this;
-        },
-
-        config: function(options) {
-            for(var s in options) { _settings[s] = options[s]; }
-
-            return this;
-        },
-
-        route: function(route) {
-            _routes.push({ url: route, callbacks: [] });
-
-            return this;
-        },
-
-        then: function(callback) {
-            _routes[_routes.length - 1].callbacks.push(callback);
-
-            return this;
-        },
-
-        navigate: function(url) {
-            
-        }
-    };
+    navigate: function(url) {
+      
+    }
+  };
 })();

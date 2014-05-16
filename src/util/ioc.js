@@ -1,8 +1,8 @@
 var ioc = champ.ioc = (function() {
-  var _cache = {},
-    _argMatcher = /^function[\s\w]*\((.*)\)[\s]*{/m,
-    _argSplitter = /\s*,\s*/,
-    _resolveInstance = function(arg) { return typeof arg === 'function' ? new arg : arg; };
+  var _cache = {}
+    , _argMatcher = /^function[\s\w]*\((.*)\)[\s]*{/m
+    , _argSplitter = /\s*,\s*/
+    , _resolveInstance = function(arg) { return typeof arg === 'function' ? new arg : arg; };
 
   return {
     register: function(key, dependency, override) {

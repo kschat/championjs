@@ -1,85 +1,65 @@
 (function (champ, $) {
+  var provider = {}
+    , templateCache = {};
 
-    var provider = {},
-        templateCache = {}
+  var makeRequest = function (name) {
+    var dfd = $.Deferred()
+      , promise = dfd.promise();
 
-    var makeRequest = function (name) {
+    var request = $.ajax({
+      async: true,
+      cache: true,
+      url: name
+    });
 
-            var dfd = $.Deferred(),
-                promise = dfd.promise();
+    request.success(function (response) {
+      dfd.resolve(response);
+    });
+    request.error(function (errors) {
+      dfd.reject(errors);
+    });
 
-            var request = $.ajax({
-                async: true,
-                cache: true,
-                url: name
-            });
+    return promise;
 
-            request.success(function (response) {
+  },
 
-                dfd.resolve(response);
+  getTemplateFromCache = function (name) {
+      return templateCache[name];
+  },
 
-            });
-            request.error(function (errors) {
+  cacheTemplate = function (name, template) {
+    templateCache[name] = template;
+  },
 
-                dfd.reject(errors);
+  getTemplate = function (name) {
+    var dfd = $.Deferred()
+      , promise = dfd.promise();
 
-            });
+    var template = getTemplateFromCache(name);
 
-            return promise;
+    if (template != null) {
+      dfd.resolve(template);
+    }
+    else {
+      $
+        .when(makeRequest(name))
+        .then(function (template) {
+          if (template != null) {
+            cacheTemplate(name, template);
+          }
 
-        },
+          dfd.resolve(template);
+        });
+    }
 
-        getTemplateFromCache = function (name) {
+    return promise;
+  };
 
-            return templateCache[name];
+  provider.get = function (template) {
+    getTemplate(template);
+  };
 
-        },
+  champ.templates = champ.templates || {};
 
-        cacheTemplate = function (name, template) {
-
-            templateCache[name] = template;
-
-            return;
-
-        },
-
-        getTemplate = function (name) {
-
-            var dfd = $.Deferred(),
-                promise = dfd.promise();
-
-            var template = getTemplateFromCache(name);
-
-            if (template != null) {
-
-                dfd.resolve(template);
-            }
-            else {
-                $.when(makeRequest(name))
-                    .then(function (template) {
-
-                        if (template != null) {
-
-                            cacheTemplate(name, template);
-
-                        }
-
-                        dfd.resolve(template);
-                    })
-            }
-
-            return promise;
-
-        };
-
-    provider.get = function (template) {
-
-        getTemplate(template);
-
-    };
-
-    champ.templates = champ.templates || {};
-
-    champ.templates.get = provider.get;
-
+  champ.templates.get = provider.get;
 })(champ || {}, jQuery);
