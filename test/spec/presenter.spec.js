@@ -57,17 +57,17 @@ describe('presenter module', function() {
       expect(this.presenter).to.have.ownProperty('model');
     });
 
-    it('Injects new instances of views and models passed in the views and models array', function() {
-      expect(this.presenter.views[0]).to.be.an.instanceof(this.testView);
-      expect(this.presenter.views[0]).to.not.equal(champ.ioc.resolve('TestView'));
-      expect(this.presenter.models[0]).to.be.an.instanceof(this.testModel);
-      expect(this.presenter.models[0]).to.not.equal(champ.ioc.resolve('TestModel'));
+    it('Injects constructors for the views and models passed in the views and models array', function() {
+      expect(new this.presenter.views[0]()).to.be.an.instanceof(this.testView);
+      expect(this.presenter.views[0]).to.equal(champ.ioc.resolve('TestView'));
+      expect(new this.presenter.models[0]()).to.be.an.instanceof(this.testModel);
+      expect(this.presenter.models[0]).to.equal(champ.ioc.resolve('TestModel'));
     });
 
     it('Adds a shortcut property to the first view and model in the respective arrays', function() {
-      expect(this.presenter.view).to.be.an.instanceof(this.testView);
+      expect(new this.presenter.view()).to.be.an.instanceof(this.testView);
       expect(this.presenter.view).to.equal(this.presenter.views[0]);
-      expect(this.presenter.model).to.be.an.instanceof(this.testModel);
+      expect(new this.presenter.model()).to.be.an.instanceof(this.testModel);
       expect(this.presenter.model).to.equal(this.presenter.models[0]);
     });
 

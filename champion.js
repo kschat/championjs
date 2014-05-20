@@ -2,7 +2,7 @@
  *  champion.js - 0.0.1
  *  Contributors: Jeff Taylor, Kyle Schattler
  *  Description: Yet another frontend MVP JS framework
- *  Source: https://github.com/JeffreyTaylor/champion.git
+ *  Source: https://github.com/kschat/championjs.git
  *  Champion may be freely distributed under the MIT license
  */
 
@@ -130,21 +130,31 @@
     var _cache = {}
       , _argMatcher = /^function[\s\w]*\((.*)\)[\s]*{/m
       , _argSplitter = /\s*,\s*/
-      , _resolveInstance = function(arg) { return typeof arg === 'function' ? new arg : arg; };
+      , _extractDependencies = function(func) {
+        return func instanceof Array
+          ? func.splice(0, func.length - 1)
+          : (_argMatcher.exec(func) || '  ')[1].split(_argSplitter);
+      };
   
     return {
       register: function(key, dependency, override) {
         if(!override && _cache[key]) { throw Error('Dependency already registered'); }
-        _cache[key] = dependency;
+        
+        _cache[key] = dependency instanceof Array
+          ? function() { return ioc.inject(dependency)(); }
+          : dependency;;
   
-        return this;
+        return ioc;
       },
   
       unregister: function(keys) {
-        keys = typeof keys === 'string' ? [keys] : keys;
+        keys = typeof keys === 'string'
+          ? [keys]
+          : keys;
+  
         for(var i=0; i<keys.length; i++) { delete _cache[keys[i]]; }
   
-        return this;
+        return ioc;
       },
   
       isRegistered: function(key) {
@@ -152,18 +162,22 @@
       },
   
       inject: function(func) {
-        var dependencies = (_argMatcher.exec(func) || '  ')[1];
+        var dependencies = _extractDependencies(func);
   
-        if(!dependencies.trim()) { return func; }
+        func = func instanceof Array
+          ? func[0]
+          : func;
   
-        dependencies = dependencies.split(_argSplitter);
+        if(!dependencies[0].trim()) { return func; }
   
         for(var i=0; i<dependencies.length; i++) {
           var dependency = _cache[dependencies[i]];
   
-          if(!dependency) { throw Error('"' + dependencies[i] + '" was never registered'); }
+          if(dependency == null) { throw Error('"' + dependencies[i] + '" was never registered'); }
           
-          dependencies[i] = _resolveInstance(dependency);
+          dependencies[i] = dependency instanceof Function
+            ? ioc.inject(dependency)
+            : dependency;
         }
   
         return func.bind.apply(func, [func].concat(dependencies));
@@ -172,19 +186,18 @@
       resolve: function(key) {
         if(typeof key !== 'string') {
           var objs = [];
-          for(var k in key) { objs.push(this.resolve(key[k])); }
+          for(var k in key) { objs.push(ioc.resolve(key[k])); }
           return objs;
         }
   
         if(!_cache[key]) { throw Error('"' + key + '" was never registered'); }
   
-        return _resolveInstance(this.inject(_cache[key]));
+        return ioc.inject(_cache[key]);
       },
   
       reset: function() {
         _cache = {};
-  
-        return this;
+        return ioc;
       }
     };
   })();

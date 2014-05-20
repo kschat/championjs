@@ -43,7 +43,6 @@ describe('Class utility', function() {
     beforeEach(function() {
       this.ExtendedClass = champ.Class.extend('ExtendedClass', {
         init: function(options) {
-          options = options || {};
           this.p1 = options.p1 || 'default';
           this.p2 = 'always value';
           this.set('p3', 'set accessed in init');
@@ -88,7 +87,7 @@ describe('Class utility', function() {
     });
 
     it('calls init when an instance of ExtendedClass is used with "new"', function() {
-      expect(this.initSpy).to.be.calledThrice; //thrice instead of twice because of the injected "ExtendedClass"
+      expect(this.initSpy).to.be.calledTwice;
       
       expect(this.extendedClass1).to.have.ownProperty('p1');
       expect(this.extendedClass1.p1).to.equal('default');
@@ -134,7 +133,7 @@ describe('Class utility', function() {
     });
 
     it('It injects all elements in the injects array into the options variable', function() {
-      expect(this.anotherInitSpy.getCall(0).args[0].ExtendedClass).to.be.an.instanceof(this.ExtendedClass);
+      expect(new (this.anotherInitSpy.getCall(0).args[0].ExtendedClass)()).to.be.an.instanceof(this.ExtendedClass);
     });
 
     it('Throws an error when trying to inject a dependency that isn\'t registered', function() {

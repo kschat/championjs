@@ -5,7 +5,7 @@ var expect = chai.expect;
 describe('ioc module', function() {
 	beforeEach(function() {
 		this.dependency1 = function() {};
-		this.dependency2 = function(testConstructor) { this.d1 = testConstructor; };
+		this.dependency2 = function(testConstructor) { this.d1 = new testConstructor(); };
     this.dependency3 = function(notRegistered) {};
 
 		champ.ioc
@@ -24,13 +24,12 @@ describe('ioc module', function() {
 			it('Registers the dependency as a constructor under the key passed in', function() {
 				this.resolved = champ.ioc.resolve('testConstructor');
 
-				expect(this.resolved).to.be.an.instanceof(this.dependency1);
-				expect(this.resolved).to.not.equal(champ.ioc.resolve('testConstructor'));
+				expect(new this.resolved()).to.be.an.instanceof(this.dependency1);
+				expect(new this.resolved()).to.not.equal(champ.ioc.resolve('testConstructor'));
 			});
 
 			it('Registers the dependency as an instance under the key passed in', function() {
-				this.resolved = champ.ioc
-					.resolve('testInstance');
+				this.resolved = champ.ioc.resolve('testInstance');
 
 				expect(this.resolved).to.be.an.instanceof(this.dependency1);
 				expect(this.resolved).to.equal(champ.ioc.resolve('testInstance'));
@@ -43,7 +42,7 @@ describe('ioc module', function() {
 					.register('dependencyChain', this.dependency1, true)
 					.resolve('dependencyChain');
 
-				expect(this.resolved).to.be.an.instanceof(this.dependency1);
+				expect(new this.resolved()).to.be.an.instanceof(this.dependency1);
 			});
 
 			it('Throws an error if the key already exists and override is false or undefined', function() {
@@ -96,9 +95,9 @@ describe('ioc module', function() {
 		});
 	});
 
-	describe('injector(func)', function() {
+	describe('inject(func)', function() {
 		it('Returns a constructor with it\'s dependencies injected', function() {
-			this.injected = new (champ.ioc.inject(this.dependency2))();
+      this.injected = new (champ.ioc.inject(this.dependency2))();
 
 			expect(this.injected).to.have.ownProperty('d1');
 			expect(this.injected.d1).to.be.an.instanceof(this.dependency1);
@@ -109,7 +108,7 @@ describe('ioc module', function() {
 		it('Returns the dependency registered under the key passed', function() {
 			this.resolved = champ.ioc.resolve('testConstructor');
 
-			expect(this.resolved).to.be.an.instanceof(this.dependency1);
+			expect(new this.resolved()).to.be.an.instanceof(this.dependency1);
 		});
 
 		it('Throws an error when trying to access a dependency that wasn\'t registered', function() {
