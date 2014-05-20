@@ -8,7 +8,7 @@ Installing
 
 To download ChampionJS use git:  
 
-    git clone https://github.com/JeffreyTaylor/championjs.git
+    git clone https://github.com/kschat/championjs.git
 
 Building
 --------
