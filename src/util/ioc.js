@@ -14,7 +14,7 @@ var ioc = champ.ioc = (function() {
       
       _cache[key] = dependency instanceof Array
         ? function() { return ioc.inject(dependency)(); }
-        : dependency;;
+        : dependency;
 
       return ioc;
     },
