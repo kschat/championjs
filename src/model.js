@@ -19,7 +19,7 @@ var model = champ.model = champ.Class.extend('Model', {
     this.properties[prop] = val;
     
     if(!silent) {
-      events.trigger('model:' + this.id + ':' + 'changed', {
+      events.trigger(this.type + ':' + 'changed', {
         property: prop,
         value: val
       });

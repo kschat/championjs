@@ -98,15 +98,20 @@
   
   Class.extend = function(name, props) {
     if(arguments.length < 2) { throw Error('Must specify a name for extended classes'); }
+  
     Class.init = false;
+    
     var base = this
       , proto = new this();
+    
     Class.init = true;
     
     var Base = function Class() { return base.apply(this, arguments); };
     
     Base.prototype = champ.extend(proto, props);
-    Base.constructor = Class;
+    Base.prototype.type = name;
+    Base.prototype.constructor = Class;
+    
     Base.extend = Class.extend;
     champ.ioc.register(name, Base);
   
@@ -142,7 +147,7 @@
         
         _cache[key] = dependency instanceof Array
           ? function() { return ioc.inject(dependency)(); }
-          : dependency;;
+          : dependency;
   
         return ioc;
       },
@@ -219,7 +224,7 @@
   
       on: function (topic, handler, options) {
         var priority = (options || {}).priority || _defaultPriority
-          , context = (options || {}).context || this;
+          , context = (options || {}).context || handler;
   
         _subscribers[topic] = _subscribers[topic] || [];
         _subscribers[topic][priority] = _subscribers[topic][priority] || [];
@@ -283,7 +288,7 @@
   
       $el.on(events, (function(view, name) {
         return function(e) {
-          champ.events.trigger('view:' + view.id + ':' + name + ' ' + e.type, e);
+          champ.events.trigger(view.type + ':' + name + ' ' + e.type, e);
         };
       })(this, name));
     },
@@ -318,7 +323,7 @@
       this.properties[prop] = val;
       
       if(!silent) {
-        events.trigger('model:' + this.id + ':' + 'changed', {
+        events.trigger(this.type + ':' + 'changed', {
           property: prop,
           value: val
         });

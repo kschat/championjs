@@ -30,7 +30,7 @@ var view = champ.view = champ.Class.extend('View', {
 
     $el.on(events, (function(view, name) {
       return function(e) {
-        champ.events.trigger('view:' + view.id + ':' + name + ' ' + e.type, e);
+        champ.events.trigger(view.type + ':' + name + ' ' + e.type, e);
       };
     })(this, name));
   },

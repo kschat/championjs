@@ -42,11 +42,11 @@ describe('view module', function() {
 
       this.view.$.testLink2.trigger('click');
       expect(this.eventsSpy).to.be.calledOnce;
-      expect(this.eventsSpy).to.be.calledWith('view:testView:testLink2 click');
+      expect(this.eventsSpy).to.be.calledWith('View:testLink2 click');
 
       this.view.$.testLink2.trigger('mouseover');
       expect(this.eventsSpy).to.be.calledTwice;
-      expect(this.eventsSpy).to.be.calledWith('view:testView:testLink2 mouseover');
+      expect(this.eventsSpy).to.be.calledWith('View:testLink2 mouseover');
     });
   });
 
@@ -74,22 +74,22 @@ describe('view module', function() {
     });
 
     describe('add(name, selector, events)', function() {
-      it('adds the element to the $ object with the name passed and binding the events given', function() {
+      it('adds the element to the $ object with the name passed and binds the events given', function() {
         this.view.add('myBtn', '#my-btn', 'click mouseover');
         expect(this.view.$).to.have.ownProperty('myBtn');
         expect(this.view.$.myBtn).to.have.id('my-btn');
 
         this.view.$.myBtn.trigger('click');
         expect(this.eventsSpy).to.be.calledOnce;
-        expect(this.eventsSpy).to.be.calledWith('view:testView:myBtn click');
+        expect(this.eventsSpy).to.be.calledWith('View:myBtn click');
 
         this.view.$.myBtn.trigger('mouseover');
         expect(this.eventsSpy).to.be.calledTwice;
-        expect(this.eventsSpy).to.be.calledWith('view:testView:myBtn mouseover');
+        expect(this.eventsSpy).to.be.calledWith('View:myBtn mouseover');
 
         this.view.$.myBtn.trigger('change');
         expect(this.eventsSpy).to.be.calledTwice;
-        expect(this.eventsSpy).to.not.be.calledWith('view:testView:myBtn change');
+        expect(this.eventsSpy).to.not.be.calledWith('View:myBtn change');
       });
 
       it('adds the element to the $ object with the name passed and binds all DOM events when "*" is passed in for events', function() {
@@ -99,7 +99,7 @@ describe('view module', function() {
 
         for(var key in champ.DOMEvents) {
           this.view.$.myBtn.trigger(champ.DOMEvents[key]);
-          expect(this.eventsSpy).to.be.calledWith('view:testView:myBtn ' + champ.DOMEvents[key]);
+          expect(this.eventsSpy).to.be.calledWith('View:myBtn ' + champ.DOMEvents[key]);
         }
       });
     });
@@ -111,7 +111,7 @@ describe('view module', function() {
       this.view.reset();
       this.view.$.testLink2.trigger('click');
       expect(this.view.$.testLink2).to.have.text('test link');
-      expect(this.eventsSpy).to.be.calledWith('view:testView:testLink2 click');
+      expect(this.eventsSpy).to.be.calledWith('View:testLink2 click');
     });
   });
 

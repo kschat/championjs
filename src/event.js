@@ -14,7 +14,7 @@ var events = champ.events = (function () {
 
     on: function (topic, handler, options) {
       var priority = (options || {}).priority || _defaultPriority
-        , context = (options || {}).context || this;
+        , context = (options || {}).context || handler;
 
       _subscribers[topic] = _subscribers[topic] || [];
       _subscribers[topic][priority] = _subscribers[topic][priority] || [];

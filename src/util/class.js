@@ -51,15 +51,20 @@ Class.prototype = champ.extend(Class.prototype, {
 
 Class.extend = function(name, props) {
   if(arguments.length < 2) { throw Error('Must specify a name for extended classes'); }
+
   Class.init = false;
+  
   var base = this
     , proto = new this();
+  
   Class.init = true;
   
   var Base = function Class() { return base.apply(this, arguments); };
   
   Base.prototype = champ.extend(proto, props);
-  Base.constructor = Class;
+  Base.prototype.type = name;
+  Base.prototype.constructor = Class;
+  
   Base.extend = Class.extend;
   champ.ioc.register(name, Base);
 

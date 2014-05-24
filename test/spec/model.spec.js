@@ -47,7 +47,7 @@ describe('model module', function() {
     it('Triggers an event when a property is set', function() {
       this.model.property('testProp', 'new test value');
 
-      expect(this.triggerSpy).to.be.calledWithExactly('model:testModel:changed', {
+      expect(this.triggerSpy).to.be.calledWithExactly('TestModel:changed', {
         property: 'testProp',
         value: 'new test value'
       });
@@ -70,7 +70,7 @@ describe('model module', function() {
       this.model.property('newProp', 'new value');
 
       expect(this.model.property('newProp')).to.equal('new value');
-      expect(this.triggerSpy).to.be.calledWithExactly('model:testModel:changed', {
+      expect(this.triggerSpy).to.be.calledWithExactly('TestModel:changed', {
         property: 'newProp',
         value: 'new value'
       });
@@ -89,12 +89,12 @@ describe('model module', function() {
       expect(this.model.property('newProp')).to.equal('also new value');
 
       expect(this.triggerSpy).to.be.calledTwice;
-      expect(this.triggerSpy).to.be.calledWithExactly('model:testModel:changed', {
+      expect(this.triggerSpy).to.be.calledWithExactly('TestModel:changed', {
         property: 'testProp',
         value: 'new value'
       });
 
-      expect(this.triggerSpy).to.be.calledWithExactly('model:testModel:changed', {
+      expect(this.triggerSpy).to.be.calledWithExactly('TestModel:changed', {
         property: 'newProp',
         value: 'also new value'
       });
