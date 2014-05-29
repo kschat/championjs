@@ -1,5 +1,5 @@
 /*
- *  champion.js - 0.1.0
+ *  champion.js - 0.2.1
  *  Contributors: Kyle Schattler, Jeff Taylor
  *  Description: Yet another frontend MVP JS framework
  *  Source: https://github.com/kschat/championjs.git

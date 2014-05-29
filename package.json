@@ -1,7 +1,7 @@
 {
   "name": "champion",
   "description": "Yet another frontend MVP JS framework",
-  "version": "0.1.0",
+  "version": "0.2.1",
   "contributors": [
     {
       "name": "Kyle Schattler",
