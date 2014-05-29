@@ -77,7 +77,6 @@ module.exports = function(grunt) {
     bump: {
       options: {
         updateConfigs: ['pkg'],
-        commitMessage: '',
         commitFiles: ['-a'],
         pushTo: 'origin'
       }
@@ -96,6 +95,6 @@ module.exports = function(grunt) {
   grunt.registerTask('release', function(version) {
     grunt.task.run('bump-only:' + (version || 'patch'));
     grunt.task.run('build');
-    grunt.task.run('bump:commit');
+    grunt.task.run('bump-commit');
   });
 };
