@@ -9,9 +9,11 @@ describe('view module', function() {
     loadFixtures('view.fixture.html');
     this.eventsSpy = sinon.spy(champ.events, 'trigger');
 
-    this.view = new champ.view({
+    this.view = new champ.View({
       id: 'testView',
+
       container: '#view-container',
+      
       $: {
         testLink1: '#test-link1',
         testLink2: '#test-link2 : click mouseover'
@@ -23,10 +25,10 @@ describe('view module', function() {
     this.eventsSpy.restore();
   });
 
-  describe('new view(id, options)', function() {
+  describe('new View(id, options)', function() {
     it('Creates a new instance of a view', function() {
-      expect(this.view).to.be.instanceof(champ.Class);
-      expect(this.view).to.be.instanceof(champ.view);
+      expect(this.view).to.be.instanceof(champ.Module);
+      expect(this.view).to.be.instanceof(champ.View);
       expect(this.view.id).to.equal('testView');
     });
 
@@ -104,15 +106,4 @@ describe('view module', function() {
       });
     });
   });
-  
-  describe('reset()', function() {
-    it('Sets the view back to its original state', function() {
-      this.view.$.testLink2.text('a');
-      this.view.reset();
-      this.view.$.testLink2.trigger('click');
-      expect(this.view.$.testLink2).to.have.text('test link');
-      expect(this.eventsSpy).to.be.calledWith('View:testLink2 click');
-    });
-  });
-
 });

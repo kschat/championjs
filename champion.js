@@ -1,42 +1,41 @@
 /*
  *  champion.js - 0.0.1
- *  Contributors: Jeff Taylor, Kyle Schattler
+ *  Contributors: Kyle Schattler, Jeff Taylor
  *  Description: Yet another frontend MVP JS framework
  *  Source: https://github.com/kschat/championjs.git
  *  Champion may be freely distributed under the MIT license
  */
 
-;(function($, undefined) { 
+!function($, undefined) {
   'use strict';
 
-  // Source: src/champion.js
   var _global = this
-  
-    , champ = _global.champ = {}
-    
-    , DOMEvents = champ.DOMEvents = [
-        'blur', 'focus', 'focusin', 'focusout', 'load', 'resize', 'scroll',
-        'unload', 'click', 'dblclick', 'mousedown', 'mouseup', 'mousemove', 
-        'mouseover', 'mouseout', 'mouseenter', 'mouseleave', 'change', 'select',
-        'submit', 'keydown', 'keypress', 'keyup', 'error'
-      ];
 
-  // Source: src/util/extend.js
-  champ.extend = function (obj, proto, skip) {
+  , champ = _global.champ = {}
+  
+  , DOMEvents = champ.DOMEvents = [
+    'blur', 'focus', 'focusin', 'focusout', 'load', 'resize', 'scroll',
+    'unload', 'click', 'dblclick', 'mousedown', 'mouseup', 'mousemove', 
+    'mouseover', 'mouseout', 'mouseenter', 'mouseleave', 'change', 'select',
+    'submit', 'keydown', 'keypress', 'keyup', 'error'
+  ];
+
+  // Source: src/extend.js
+  champ.extend = function (proto, obj, skip) {
+    var newObj = Object.create(proto);
+  
     skip = skip || [];
   
-    for (var name in proto) {
-      for(var i=0; i<skip.length; i++) { 
-        if(skip[i] in proto) { continue; }
-      }
+    for (var name in obj) {
+      if(skip.indexOf(name) > -1) { continue; }
   
-      obj[name] = proto[name];
+      newObj[name] = obj[name];
     }
   
-    return obj;
+    return newObj;
   };
 
-  // Source: src/util/guid.js
+  // Source: src/guid.js
   champ.guid = function() {
     return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
       var r = Math.random()*16|0, v = c === 'x' ? r : (r&0x3|0x8);
@@ -44,14 +43,14 @@
     });
   };
 
-  // Source: src/util/class.js
-  var Class = champ.Class = function Class(options) {
-    Class.init = typeof Class.init === 'boolean' ? Class.init : true;
+  // Source: src/module.js
+  var Module = champ.Module = function Module(options) {
+    Module.init = typeof Module.init === 'boolean' ? Module.init : true;
     options = options || {};
   
     this.id = options.id || champ.guid();
   
-    if(Class.init) {
+    if(Module.init) {
       for(var i in this.inject) {
         options[this.inject[i]] = champ.ioc.resolve(this.inject[i]);
       }
@@ -61,7 +60,7 @@
     }
   };
   
-  Class.prototype = champ.extend(Class.prototype, {
+  Module.prototype = champ.extend(Module.prototype, {
     _construct: function(options) {
       this.properties = options;
     },
@@ -96,41 +95,41 @@
     }
   });
   
-  Class.extend = function(name, props) {
-    if(arguments.length < 2) { throw Error('Must specify a name for extended classes'); }
+  Module.extend = function(name, props) {
+    if(arguments.length < 2) { throw Error('Must specify a name for extended module'); }
   
-    Class.init = false;
+    Module.init = false;
     
     var base = this
       , proto = new this();
     
-    Class.init = true;
+    Module.init = true;
     
-    var Base = function Class() { return base.apply(this, arguments); };
+    var Base = function Module() { return base.apply(this, arguments); };
     
     Base.prototype = champ.extend(proto, props);
     Base.prototype.type = name;
-    Base.prototype.constructor = Class;
+    Base.prototype.constructor = Module;
     
-    Base.extend = Class.extend;
+    Base.extend = Module.extend;
     champ.ioc.register(name, Base);
   
     return Base;
   };
 
-  // Source: src/util/namespace.js
-  champ.namespace = function namespace(names, val) {
-    if(typeof(names) === 'string') { return namespace.call(this, names.split('.'), val); }
+  // Source: src/namespace.js
+  var namespace = champ.namespace = function namespace(names, val) {
+    if(typeof names === 'string') { return namespace.call(this, names.split('.'), val); }
       
     var name = names.splice(0, 1);
     this[name] = this[name] || {};
       
-    if(names.length === 0) { return this[name] = val || this[name]; }
+    if(names.length === 0) { return this[name] = val == null ? this[name] : val; }
   
     return namespace.call(this[name], names, val);
   };
 
-  // Source: src/util/ioc.js
+  // Source: src/ioc.js
   var ioc = champ.ioc = (function() {
     var _cache = {}
       , _argMatcher = /^function[\s\w]*\((.*)\)[\s]*{/m
@@ -256,23 +255,19 @@
   })();
 
   // Source: src/view.js
-  var view = champ.view = champ.Class.extend('View', {
+  var View = champ.View = champ.Module.extend('View', {
     _construct: function(options) {
       this.container = options.container
         ? $(options.container) 
         : $(this.container) || $('<div>');
   
-      this.$ = champ.extend({}, champ.extend(options.$ || {}, this.$ || {}));
-      this._initState = [];
+      this.$ = champ.extend(this.$ || {}, options.$ || {});
   
       for(var key in this.$) {
         var events = this.$[key].split(/\s*:\s*/)
           , selector = events.splice(0, 1)[0];
   
         this.add(key, selector, events);
-        this._initState[key] = this.$[key].is('input')
-          ? this.$[key].val()
-          : this.$[key].text();
       }
     },
     
@@ -286,23 +281,16 @@
         ? (events.trim() === '*' ? DOMEvents.join(' ') : events)
         : (events || []).join(' ');
   
-      $el.on(events, (function(view, name) {
+      $el.on(events, (function(View, name) {
         return function(e) {
-          champ.events.trigger(view.type + ':' + name + ' ' + e.type, e);
+          champ.events.trigger(View.type + ':' + name + ' ' + e.type, e);
         };
       })(this, name));
-    },
-  
-    reset: function() {
-      for(var i in this._initState) {
-        var isInput = this.$[i].is('input');
-        this.$[i][isInput ? 'val' : 'text'](this._initState[i]);
-      }
     }
   });
 
   // Source: src/model.js
-  var model = champ.model = champ.Class.extend('Model', {
+  var Model = champ.Model = champ.Module.extend('Model', {
     _construct: function(options) {
       this.properties = champ.extend({}, this.properties);
       this._initState = champ.extend({}, this.properties);
@@ -336,7 +324,7 @@
   });
 
   // Source: src/presenter.js
-  var presenter = champ.presenter = champ.Class.extend('Presenter', {
+  var Presenter = champ.Presenter = champ.Module.extend('Presenter', {
     models: [],
     
     views: [],
@@ -363,5 +351,4 @@
       }
     }
   });
-
-}).call(this, jQuery);
+}.call(this, jQuery);

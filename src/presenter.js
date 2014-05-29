@@ -1,4 +1,4 @@
-var presenter = champ.presenter = champ.Class.extend('Presenter', {
+var Presenter = champ.Presenter = champ.Module.extend('Presenter', {
   models: [],
   
   views: [],

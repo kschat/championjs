@@ -2,26 +2,26 @@
 
 var expect = chai.expect;
 
-describe('Class utility', function() {
+describe('Module utility', function() {
   beforeEach(function() {
-    this.baseObj = new champ.Class();
-    this.customObj = new champ.Class({ id: 'customObj', customProp: 'custom', customProp2: 'c2' });
-    this.noNameObj = new champ.Class({ p1: 'value' });
+    this.baseObj = new champ.Module();
+    this.customObj = new champ.Module({ id: 'customObj', customProp: 'custom', customProp2: 'c2' });
+    this.noNameObj = new champ.Module({ p1: 'value' });
   });
 
-  describe('new Class', function() {
-    it('creates an instance of Class when used with "new"', function() {
-      expect(this.baseObj).to.be.instanceof(champ.Class);
+  describe('new Module', function() {
+    it('creates an instance of a Module when used with "new"', function() {
+      expect(this.baseObj).to.be.instanceof(champ.Module);
       expect(this.baseObj).to.have.ownProperty('properties');
 
-      expect(this.customObj).to.be.instanceof(champ.Class);
+      expect(this.customObj).to.be.instanceof(champ.Module);
       expect(this.customObj).to.have.ownProperty('properties');
       expect(this.customObj).to.have.ownProperty('id');
       expect(this.customObj.id).to.equal('customObj');
     });
 
-    it('Creates an instance of Class and adds properties', function() {
-      expect(this.baseObj).to.be.instanceof(champ.Class);
+    it('Creates an instance of a Module and adds properties', function() {
+      expect(this.baseObj).to.be.instanceof(champ.Module);
       expect(this.customObj).to.have.ownProperty('properties');
       expect(this.customObj.properties).to.have.ownProperty('customProp');
       expect(this.customObj.properties.customProp).to.equal('custom');
@@ -39,9 +39,9 @@ describe('Class utility', function() {
     });
   });
 
-  describe('Class.extend(props)', function() {
+  describe('Module.extend(props)', function() {
     beforeEach(function() {
-      this.ExtendedClass = champ.Class.extend('ExtendedClass', {
+      this.ExtendedModule = champ.Module.extend('ExtendedModule', {
         init: function(options) {
           this.p1 = options.p1 || 'default';
           this.p2 = 'always value';
@@ -51,93 +51,93 @@ describe('Class utility', function() {
         m1: function() {}
       });
 
-      this.AnotherExtendedClass = this.ExtendedClass.extend('AnotherExtendedClass', {
-        inject: ['ExtendedClass'],
+      this.AnotherExtendedModule = this.ExtendedModule.extend('AnotherExtendedModule', {
+        inject: ['ExtendedModule'],
 
         init: function(options) {},
 
         m2: function() {}
       });
 
-      this.ThrowsErrorClass = champ.Class.extend('ThrowsErrorClass', {
+      this.ThrowsErrorModule = champ.Module.extend('ThrowsErrorModule', {
         inject: ['DoesntExist']
       });
 
-      this.constructSpy = sinon.spy(this.ExtendedClass.prototype, '_construct');
-      this.initSpy = sinon.spy(this.ExtendedClass.prototype, 'init');
-      this.anotherInitSpy = sinon.spy(this.AnotherExtendedClass.prototype, 'init');
+      this.constructSpy = sinon.spy(this.ExtendedModule.prototype, '_construct');
+      this.initSpy = sinon.spy(this.ExtendedModule.prototype, 'init');
+      this.anotherInitSpy = sinon.spy(this.AnotherExtendedModule.prototype, 'init');
 
-      this.extendedClass1 = new this.ExtendedClass();
-      this.extendedClass2 = new this.ExtendedClass({
+      this.extendedModule1 = new this.ExtendedModule();
+      this.extendedModule2 = new this.ExtendedModule({
         p1: 'not default'
       });
 
-      this.anotherExtendedClass = new this.AnotherExtendedClass();
+      this.anotherExtendedModule = new this.AnotherExtendedModule();
     });
 
     afterEach(function() {
       this.initSpy.restore();
       this.anotherInitSpy.restore();
-      champ.ioc.unregister(['ExtendedClass', 'AnotherExtendedClass', 'ThrowsErrorClass']);
+      champ.ioc.unregister(['ExtendedModule', 'AnotherExtendedModule', 'ThrowsErrorModule']);
     });
 
-    it('creates an instance of ExtendedClass when used with "new" that is also an instance of Class', function() {
-      expect(this.extendedClass1 instanceof this.ExtendedClass);
-      expect(this.extendedClass1 instanceof champ.Class);
+    it('creates an instance of ExtendedModule when used with "new" that is also an instance of Module', function() {
+      expect(this.extendedModule1 instanceof this.ExtendedModule);
+      expect(this.extendedModule1 instanceof champ.Module);
     });
 
-    it('calls init when an instance of ExtendedClass is used with "new"', function() {
+    it('calls init when an instance of ExtendedModule is used with "new"', function() {
       expect(this.initSpy).to.be.calledTwice;
       
-      expect(this.extendedClass1).to.have.ownProperty('p1');
-      expect(this.extendedClass1.p1).to.equal('default');
+      expect(this.extendedModule1).to.have.ownProperty('p1');
+      expect(this.extendedModule1.p1).to.equal('default');
 
-      expect(this.extendedClass1).to.have.ownProperty('p2');
-      expect(this.extendedClass1.p2).to.equal('always value');
+      expect(this.extendedModule1).to.have.ownProperty('p2');
+      expect(this.extendedModule1.p2).to.equal('always value');
       
-      expect(this.extendedClass1.properties).to.have.ownProperty('p3');
-      expect(this.extendedClass1.properties.p3).to.equal('set accessed in init');
+      expect(this.extendedModule1.properties).to.have.ownProperty('p3');
+      expect(this.extendedModule1.properties.p3).to.equal('set accessed in init');
 
-      expect(this.extendedClass2).to.have.ownProperty('p1');
-      expect(this.extendedClass2.p1).to.equal('not default');
+      expect(this.extendedModule2).to.have.ownProperty('p1');
+      expect(this.extendedModule2.p1).to.equal('not default');
 
-      expect(this.extendedClass2).to.have.ownProperty('p2');
-      expect(this.extendedClass2.p2).to.equal('always value');
+      expect(this.extendedModule2).to.have.ownProperty('p2');
+      expect(this.extendedModule2.p2).to.equal('always value');
       
-      expect(this.extendedClass2.properties).to.have.ownProperty('p3');
-      expect(this.extendedClass2.properties.p3).to.equal('set accessed in init');
+      expect(this.extendedModule2.properties).to.have.ownProperty('p3');
+      expect(this.extendedModule2.properties.p3).to.equal('set accessed in init');
     });
 
-    it('adds any method or property to the base of the class', function() {
-      expect(this.extendedClass1).to.have.deep.property('m1');
-      expect(this.extendedClass2).to.have.deep.property('m1');
+    it('adds any method or property to the base of the Module', function() {
+      expect(this.extendedModule1).to.have.deep.property('m1');
+      expect(this.extendedModule2).to.have.deep.property('m1');
     });
 
-    it('creates a new "class" when extend is called on ExtendedClass', function() {
-      expect(this.anotherExtendedClass).to.be.an.instanceof(this.AnotherExtendedClass);
-      expect(this.anotherExtendedClass).to.be.an.instanceof(this.ExtendedClass);
-      expect(this.anotherExtendedClass).to.be.an.instanceof(champ.Class);
+    it('creates a new "Module" when extend is called on ExtendedModule', function() {
+      expect(this.anotherExtendedModule).to.be.an.instanceof(this.AnotherExtendedModule);
+      expect(this.anotherExtendedModule).to.be.an.instanceof(this.ExtendedModule);
+      expect(this.anotherExtendedModule).to.be.an.instanceof(champ.Module);
     });
 
-    it('inherits all methods and properties from base class and overwrites them if specified', function() {
+    it('inherits all methods and properties from base Module and overwrites them if specified', function() {
       expect(this.anotherInitSpy).to.be.calledOnce;
 
-      expect(this.anotherExtendedClass).to.not.have.ownProperty('p1');
+      expect(this.anotherExtendedModule).to.not.have.ownProperty('p1');
 
-      expect(this.anotherExtendedClass).to.not.have.ownProperty('p2');
+      expect(this.anotherExtendedModule).to.not.have.ownProperty('p2');
       
-      expect(this.anotherExtendedClass.properties).to.not.have.ownProperty('p3');
+      expect(this.anotherExtendedModule.properties).to.not.have.ownProperty('p3');
 
-      expect(this.anotherExtendedClass).to.have.deep.property('m1');
-      expect(this.anotherExtendedClass).to.have.deep.property('m2');
+      expect(this.anotherExtendedModule).to.have.deep.property('m1');
+      expect(this.anotherExtendedModule).to.have.deep.property('m2');
     });
 
     it('It injects all elements in the injects array into the options variable', function() {
-      expect(new (this.anotherInitSpy.getCall(0).args[0].ExtendedClass)()).to.be.an.instanceof(this.ExtendedClass);
+      expect(new (this.anotherInitSpy.getCall(0).args[0].ExtendedModule)()).to.be.an.instanceof(this.ExtendedModule);
     });
 
     it('Throws an error when trying to inject a dependency that isn\'t registered', function() {
-      expect(function() { champ.ioc.resolve('ThrowsErrorClass'); }).to.throw;
+      expect(function() { champ.ioc.resolve('ThrowsErrorModule'); }).to.throw;
     });
   });
 

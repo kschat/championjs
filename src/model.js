@@ -1,4 +1,4 @@
-var model = champ.model = champ.Class.extend('Model', {
+var Model = champ.Model = champ.Module.extend('Model', {
   _construct: function(options) {
     this.properties = champ.extend({}, this.properties);
     this._initState = champ.extend({}, this.properties);

@@ -2,11 +2,11 @@
 
 var expect = chai.expect;
 
-describe('model module', function() {
+describe('Model module', function() {
   beforeEach(function() {
     this.triggerSpy = sinon.spy(champ.events, 'trigger');
 
-    this.TestModel = champ.model.extend('TestModel', {
+    this.TestModel = champ.Model.extend('TestModel', {
       properties: {
         testProp: 'test'
       }
@@ -20,9 +20,9 @@ describe('model module', function() {
     champ.ioc.reset();
   });
 
-  describe('new model(id, options)', function() {
+  describe('new Model(id, options)', function() {
     it('Creates a new instance of a model', function() {
-      expect(this.model).to.be.instanceof(champ.Class);
+      expect(this.model).to.be.instanceof(champ.Module);
       expect(this.model.id).to.equal('testModel');
 
       this.model.property('testProp', 'new value');

@@ -1,20 +1,16 @@
-var view = champ.view = champ.Class.extend('View', {
+var View = champ.View = champ.Module.extend('View', {
   _construct: function(options) {
     this.container = options.container
       ? $(options.container) 
       : $(this.container) || $('<div>');
 
-    this.$ = champ.extend({}, champ.extend(options.$ || {}, this.$ || {}));
-    this._initState = [];
+    this.$ = champ.extend(this.$ || {}, options.$ || {});
 
     for(var key in this.$) {
       var events = this.$[key].split(/\s*:\s*/)
         , selector = events.splice(0, 1)[0];
 
       this.add(key, selector, events);
-      this._initState[key] = this.$[key].is('input')
-        ? this.$[key].val()
-        : this.$[key].text();
     }
   },
   
@@ -28,17 +24,10 @@ var view = champ.view = champ.Class.extend('View', {
       ? (events.trim() === '*' ? DOMEvents.join(' ') : events)
       : (events || []).join(' ');
 
-    $el.on(events, (function(view, name) {
+    $el.on(events, (function(View, name) {
       return function(e) {
-        champ.events.trigger(view.type + ':' + name + ' ' + e.type, e);
+        champ.events.trigger(View.type + ':' + name + ' ' + e.type, e);
       };
     })(this, name));
-  },
-
-  reset: function() {
-    for(var i in this._initState) {
-      var isInput = this.$[i].is('input');
-      this.$[i][isInput ? 'val' : 'text'](this._initState[i]);
-    }
   }
 });

@@ -2,7 +2,7 @@
 
 var expect = chai.expect;
 
-describe('presenter module', function() {
+describe('Presenter module', function() {
   beforeEach(function() {
     this.eventsSpy = sinon.spy(champ.events, 'trigger');
     this.method1Spy = sinon.spy();
@@ -14,7 +14,7 @@ describe('presenter module', function() {
       .register('TestView', this.testView)
       .register('TestModel', this.testModel);
 
-    this.TestPresenter = champ.presenter.extend('TestPresenter', {
+    this.TestPresenter = champ.Presenter.extend('TestPresenter', {
       views: ['TestView'],
 
       models: ['TestModel'],
@@ -32,7 +32,7 @@ describe('presenter module', function() {
       models: []
     });
 
-    this.NoViewPresenter = champ.presenter.extend('NoViewPresenter', {});
+    this.NoViewPresenter = champ.Presenter.extend('NoViewPresenter', {});
 
     this.presenter = new this.TestPresenter();
     this.noViewPresenter = new this.NoViewPresenter();
@@ -43,10 +43,10 @@ describe('presenter module', function() {
     champ.ioc.reset();
   });
 
-  describe('new presenter(id, options)', function() {
+  describe('new Presenter(id, options)', function() {
     it('Creates a new instance of a presenter', function() {
-      expect(this.presenter).to.be.an.instanceof(champ.Class);
-      expect(this.presenter).to.be.an.instanceof(champ.presenter);
+      expect(this.presenter).to.be.an.instanceof(champ.Module);
+      expect(this.presenter).to.be.an.instanceof(champ.Presenter);
     });
 
     it('Has an object for views, models, and events', function() {

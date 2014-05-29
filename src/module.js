@@ -1,10 +1,10 @@
-var Class = champ.Class = function Class(options) {
-  Class.init = typeof Class.init === 'boolean' ? Class.init : true;
+var Module = champ.Module = function Module(options) {
+  Module.init = typeof Module.init === 'boolean' ? Module.init : true;
   options = options || {};
 
   this.id = options.id || champ.guid();
 
-  if(Class.init) {
+  if(Module.init) {
     for(var i in this.inject) {
       options[this.inject[i]] = champ.ioc.resolve(this.inject[i]);
     }
@@ -14,7 +14,7 @@ var Class = champ.Class = function Class(options) {
   }
 };
 
-Class.prototype = champ.extend(Class.prototype, {
+Module.prototype = champ.extend(Module.prototype, {
   _construct: function(options) {
     this.properties = options;
   },
@@ -49,23 +49,23 @@ Class.prototype = champ.extend(Class.prototype, {
   }
 });
 
-Class.extend = function(name, props) {
-  if(arguments.length < 2) { throw Error('Must specify a name for extended classes'); }
+Module.extend = function(name, props) {
+  if(arguments.length < 2) { throw Error('Must specify a name for extended module'); }
 
-  Class.init = false;
+  Module.init = false;
   
   var base = this
     , proto = new this();
   
-  Class.init = true;
+  Module.init = true;
   
-  var Base = function Class() { return base.apply(this, arguments); };
+  var Base = function Module() { return base.apply(this, arguments); };
   
   Base.prototype = champ.extend(proto, props);
   Base.prototype.type = name;
-  Base.prototype.constructor = Class;
+  Base.prototype.constructor = Module;
   
-  Base.extend = Class.extend;
+  Base.extend = Module.extend;
   champ.ioc.register(name, Base);
 
   return Base;
